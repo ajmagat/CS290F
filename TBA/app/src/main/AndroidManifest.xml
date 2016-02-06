@@ -38,11 +38,7 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar"
-<<<<<<< HEAD
             android:screenOrientation="portrait">
-=======
-            android:screenOrientation="portrait" >
->>>>>>> d59dd12bd195f33d900c308d0509ac002583c976
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
