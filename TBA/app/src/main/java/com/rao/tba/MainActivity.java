@@ -7,6 +7,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,8 +16,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -157,10 +160,47 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            System.out.println("CREATING ViewRecipes");
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+
+            Map<String, String> recipeMap = new HashMap<String, String>();
+            SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RecipeStore", MODE_PRIVATE);
+
+            //Create layout
+            LinearLayout layout = new LinearLayout(getActivity());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+            layout.setLayoutParams(lp);
+
+
+            //Create button for each recipe
+            try{
+                if (prefs != null){
+                    String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
+                    JSONObject jsonObject = new JSONObject(jsonString);
+                    Iterator<String> keysItr = jsonObject.keys();
+                    while(keysItr.hasNext()) {
+                        String key = keysItr.next();
+                        String value = (String) jsonObject.get(key);
+
+                        Button myButton = new Button(getActivity());
+                        myButton.setText("Edit \"" + key + "\" Recipe");
+                        LinearLayout.LayoutParams button_lp = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT);
+
+                        myButton.setLayoutParams(button_lp);
+                        layout.addView(myButton);
+                    }
+
+                } else {
+                    System.out.println("RecipeStore is null.");
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+
+            ViewGroup viewGroup = (ViewGroup) rootView;
+            viewGroup.addView(layout);
             return rootView;
         }
     }
