@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
 
                     //Read in all existing recipes to a map
-                    Map<String, Recipe> recipeMap = new HashMap<String, Recipe>();
+                    Map<String, String> recipeMap = new HashMap<String, String>();
                     SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RecipeStore", MODE_PRIVATE);
 
                     try{
@@ -219,12 +219,11 @@ public class MainActivity extends AppCompatActivity {
                             Iterator<String> keysItr = jsonObject.keys();
                             while(keysItr.hasNext()) {
                                 String key = keysItr.next();
-                                System.out.println("Key is " + key);
-                                System.out.println(jsonObject.get(key));
-//                                Recipe value = (Recipe) jsonObject.get(key);
-//                                recipeMap.put(key, value);
+                                String value = (String) jsonObject.get(key);
+                                recipeMap.put(key, value);
                             }
 
+                            System.out.println("RECIPE MAP BEFORE ADDITION: ");
                             System.out.println(recipeMap);
 
                             String recipe_name = recipeName.getText().toString();
@@ -233,18 +232,19 @@ public class MainActivity extends AppCompatActivity {
                             String recipe_then_2 = String.valueOf(spinner3.getSelectedItem());
 
                             Recipe newRecipe = new Recipe(recipe_if, recipe_then_1, recipe_then_2);
-                            recipeMap.put(recipe_name, newRecipe);
+                            String newRecipeString = newRecipe.toString();
+                            recipeMap.put(recipe_name, newRecipeString);
 
 
                             //write the updated map to prefs
                             JSONObject jsonObjectToWrite = new JSONObject(recipeMap);
                             String jsonStringToWrite = jsonObjectToWrite.toString();
-                            System.out.println("JsonStringToWrite: " + jsonStringToWrite);
 
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.remove("RecipeMap").commit();
                             editor.putString("RecipeMap", jsonStringToWrite);
                             editor.commit();
+
 
                         } else {
                             System.out.println("RecipeStore is null. First time access?");
