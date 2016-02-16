@@ -1,8 +1,30 @@
 <resources>
     <string name="app_name">TBA</string>
     <string name="title_activity_maps">Map</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">Notifications</string>
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="title_activity_accelerometer">AccelerometerActivity</string>
+
+    <string name="select_prompt">Select...</string>
+
+    <string-array name="if_array">
+        <item>Biking</item>
+        <item>Driving</item>
+        <item>Walking</item>
+        <item>Sitting</item>
+    </string-array>
+
+    <string-array name="then_1_array">
+        <item>Biking</item>
+        <item>Driving</item>
+        <item>Walking</item>
+        <item>Sitting</item>
+    </string-array>
+
+    <string-array name="then_2_array">
+        <item>Drop Pin</item>
+    </string-array>
+
+
 </resources>
