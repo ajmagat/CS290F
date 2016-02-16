@@ -1,6 +1,7 @@
 package com.rao.tba;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -15,8 +16,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -74,18 +82,6 @@ public class MainActivity extends AppCompatActivity {
                // System.out.println("OnPageScrollStateChanged " + state);
             }
         });
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-////                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-////                        .setAction("Action", null).show();
-//
-//                Intent mapsIntent = new Intent(MainActivity.this, MapsActivity.class);
-//                startActivity(mapsIntent);
-//            }
-//        });
-
     }
 
 
@@ -175,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
 
         private Spinner spinner1, spinner2, spinner3;
         private Button btnSubmit;
+        private EditText recipeName;
 
         public EditRecipesFragment() {
         }
@@ -202,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
             spinner1 = (Spinner) rootView.findViewById(R.id.spinner1);
             spinner2 = (Spinner) rootView.findViewById(R.id.spinner2);
             spinner3 = (Spinner) rootView.findViewById(R.id.spinner3);
+            recipeName = (EditText) rootView.findViewById(R.id.recipeName);
             btnSubmit = (Button) rootView.findViewById(R.id.btnSubmit);
 
             btnSubmit.setOnClickListener(new View.OnClickListener() {
@@ -209,9 +207,57 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
+                    //Read in all existing recipes to a map
+                    Map<String, Recipe> recipeMap = new HashMap<String, Recipe>();
+                    SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RecipeStore", MODE_PRIVATE);
+
+                    try{
+                        if (prefs != null){
+                            System.out.println("RecipeStore is not null");
+                            String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
+                            JSONObject jsonObject = new JSONObject(jsonString);
+                            Iterator<String> keysItr = jsonObject.keys();
+                            while(keysItr.hasNext()) {
+                                String key = keysItr.next();
+                                System.out.println("Key is " + key);
+                                System.out.println(jsonObject.get(key));
+//                                Recipe value = (Recipe) jsonObject.get(key);
+//                                recipeMap.put(key, value);
+                            }
+
+                            System.out.println(recipeMap);
+
+                            String recipe_name = recipeName.getText().toString();
+                            String recipe_if = String.valueOf(spinner1.getSelectedItem());
+                            String recipe_then_1 = String.valueOf(spinner2.getSelectedItem());
+                            String recipe_then_2 = String.valueOf(spinner3.getSelectedItem());
+
+                            Recipe newRecipe = new Recipe(recipe_if, recipe_then_1, recipe_then_2);
+                            recipeMap.put(recipe_name, newRecipe);
+
+
+                            //write the updated map to prefs
+                            JSONObject jsonObjectToWrite = new JSONObject(recipeMap);
+                            String jsonStringToWrite = jsonObjectToWrite.toString();
+                            System.out.println("JsonStringToWrite: " + jsonStringToWrite);
+
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.remove("RecipeMap").commit();
+                            editor.putString("RecipeMap", jsonStringToWrite);
+                            editor.commit();
+
+                        } else {
+                            System.out.println("RecipeStore is null. First time access?");
+                        }
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+
                     System.out.println("OnClickListener : " +
+                            "\nRecipe Name : " + recipeName.getText().toString() +
                             "\nSpinner 1 : " + String.valueOf(spinner1.getSelectedItem()) +
-                            "\nSpinner 2 : " + String.valueOf(spinner2.getSelectedItem()));
+                            "\nSpinner 2 : " + String.valueOf(spinner2.getSelectedItem()) +
+                            "\nSpinner 3 : " + String.valueOf(spinner3.getSelectedItem()));
                 }
             });
         }
