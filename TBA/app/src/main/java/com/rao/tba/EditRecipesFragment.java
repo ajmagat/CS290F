@@ -11,6 +11,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -88,7 +89,13 @@ public class EditRecipesFragment extends Fragment {
             public void onClick(View v) {
 
                 InputMethodManager inputMethodManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                inputMethodManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+                if (inputMethodManager.isAcceptingText()) {
+                    inputMethodManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+                } else {
+                    Toast.makeText(getActivity(), "Please enter a new recipe name!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
                 //Read in all existing recipes to a map
                 Map<String, String> recipeMap = new HashMap<String, String>();
                 SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);

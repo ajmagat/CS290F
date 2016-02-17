@@ -1,28 +1,35 @@
 package com.rao.tba;
 
 import android.content.Intent;
-
 import android.os.Bundle;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
 import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.ActivityRecognition;
+import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
 
 import java.util.List;
 
-import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
+public class MainActivity extends AppCompatActivity implements OnListFragmentInteractionListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-public class MainActivity extends AppCompatActivity implements OnListFragmentInteractionListener {
+    protected static final String TAG = "MainActivity";
+
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
+
+    protected GoogleApiClient mGoogleApiClient;
+
+//    private boolean seenNotificationsOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
                 System.out.println(allFrags.toString());
                 if (position == 0) {
                     setTitle("Notifications");
+
                 } else if (position == 1) {
                     setTitle("My Recipes");
                     RecipeFragment temp = (RecipeFragment) allFrags.get(1);
@@ -71,6 +79,17 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
             public void onPageScrollStateChanged(int state) {
             }
         });
+
+        buildGoogleApiClient();
+    }
+
+    // Setup GoogleAPI client
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(ActivityRecognition.API)
+                .build();
     }
 
 
@@ -109,5 +128,35 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
     public void onListFragmentInteraction(Recipe item) {
         System.out.println("hello there " + item.toString());
         Toast.makeText(getApplicationContext(), item.toString(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int cause) {
+        // The connection to Google Play services was lost for some reason. We call connect() to
+        // attempt to re-establish the connection.
+        Log.i(TAG, "Connection suspended");
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
     }
 }
