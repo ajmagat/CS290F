@@ -4,12 +4,19 @@
     android:orientation="vertical" >
     tools:context="com.rao.tba.MainActivity$">
 
-    <Button
-        android:id="@+id/bikeNotificationButton"
+    <TextView
+        android:id="@+id/bikeNotification"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Bike Location"
-        android:visibility="gone"
-        android:onClick="showMap"/>
+        android:text=""
+        android:onClick="showMap"
+        android:textSize="28sp"/>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="0.2dp"
+        android:id="@+id/separator"
+        android:visibility="visible"
+        android:background="@android:color/darker_gray"/>
 
 </LinearLayout>

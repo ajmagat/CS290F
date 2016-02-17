@@ -17,8 +17,11 @@ import android.view.View;
 
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
@@ -82,7 +85,9 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
             //Add demo notification
             List<Fragment> allFrags = getSupportFragmentManager().getFragments();
             NotificationsFragment notiFrag= (NotificationsFragment) allFrags.get(0);
-            notiFrag.changeButtonVisibility();
+            TextView notiView = (TextView) notiFrag.getView().findViewById(R.id.bikeNotification);
+            String timeStamp = new SimpleDateFormat("MM/dd HH:mm").format(Calendar.getInstance().getTime());
+            notiView.setText("Dropped bike pin " + timeStamp);
         }
         return true;
     }

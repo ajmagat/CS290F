@@ -36,7 +36,7 @@ public class NotificationsFragment extends Fragment {
     }
 
     public void changeButtonVisibility() {
-        Button bikeNotificationButton = (Button) getView().findViewById(R.id.bikeNotificationButton);
-        bikeNotificationButton.setVisibility(View.VISIBLE);
+       // Button bikeNotificationButton = (Button) getView().findViewById(R.id.bikeNotificationButton);
+        //bikeNotificationButton.setVisibility(View.VISIBLE);
     }
 }
