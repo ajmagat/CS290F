@@ -10,10 +10,13 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.List;
@@ -73,6 +76,23 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
         });
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_ENTER) {
+            //Add demo notification
+            List<Fragment> allFrags = getSupportFragmentManager().getFragments();
+            NotificationsFragment notiFrag= (NotificationsFragment) allFrags.get(0);
+            notiFrag.changeButtonVisibility();
+        }
+        return true;
+    }
+
+    public void showMap(View v) {
+
+        Intent mapsIntent = new Intent(this, MapsActivity.class);
+        startActivity(mapsIntent);
+
+    }
 
     public void startAccelerometer(View view) {
         Intent accelIntent = new Intent(this, AccelerometerActivity.class);
