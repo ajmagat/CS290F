@@ -38,7 +38,7 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
     public void onBindViewHolder(final ViewHolder holder, int position) {
         System.out.println("inside onBindViewHolder() with position " + position);
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(holder.mItem.getName() + "\n" + holder.mItem.toString());
+        holder.mIdView.setText(holder.mItem.getName() + "\n" + holder.mItem.toReadableString());
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

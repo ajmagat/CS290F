@@ -40,5 +40,8 @@ public class Recipe {
         return m_if + "#" + m_then1 + "#" + m_then2;
     }
 
+    public String toReadableString(){
+        return "IF: " + m_if + " THEN: " + m_then1 + ", THEN: " + m_then2;
+    }
 
 }
