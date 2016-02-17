@@ -1,13 +1,14 @@
 package com.rao.tba;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
-import com.rao.tba.Recipe;
 import java.util.List;
 
 /**
@@ -18,10 +19,12 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
 
     private final List<Recipe> mValues;
     private final OnListFragmentInteractionListener mListener;
+    private final Context mContext;
 
-    public RecipeListAdapter(List<Recipe> items, OnListFragmentInteractionListener listener) {
+    public RecipeListAdapter(List<Recipe> items, OnListFragmentInteractionListener listener, Context context) {
         mValues = items;
         mListener = listener;
+        mContext = context;
     }
 
     @Override
@@ -33,6 +36,7 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+        System.out.println("inside onBindViewHolder() with position " + position);
         holder.mItem = mValues.get(position);
         holder.mIdView.setText(holder.mItem.getName() + "\n" + holder.mItem.toString());
         holder.mView.setOnClickListener(new View.OnClickListener() {
@@ -43,6 +47,19 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
                     // fragment is attached to one) that an item has been selected.
                     mListener.onListFragmentInteraction(holder.mItem);
                 }
+            }
+        });
+
+        final RecipeListAdapter temp = this;
+        holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                TextView t = (TextView) v.findViewById(R.id.id);
+                String[] what = t.getText().toString().split("\\s+");
+                RecipeFragment.deleteFromMap(mContext, what[0], mValues, temp, holder.getAdapterPosition());
+                System.out.println("what is " + what.length);
+                Toast.makeText(mContext, "About 2 " + what[0], Toast.LENGTH_SHORT).show();
+                return true;
             }
         });
     }

@@ -1,6 +1,7 @@
 package com.rao.tba;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
@@ -9,6 +10,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -77,7 +80,7 @@ public class RecipeFragment extends Fragment {
 
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-            recyclerView.setAdapter(new RecipeListAdapter(mRecipes, mListener));
+            recyclerView.setAdapter(new RecipeListAdapter(mRecipes, mListener, getContext()));
             mListAdapter = (RecipeListAdapter) recyclerView.getAdapter();
         }
         return view;
@@ -122,6 +125,27 @@ public class RecipeFragment extends Fragment {
         // TODO: Update argument type and name
         void onListFragmentInteraction(Recipe item);
     }
+    public static void deleteFromMap( Context context, String key, List<Recipe> values, RecipeListAdapter adapter, int pos ) {
+        try {
+            System.out.println("Inside of deleteFromMap in RecipeFragment");
+            SharedPreferences prefs = context.getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
+            String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
+            JSONObject jsonObject = new JSONObject(jsonString);
+            jsonObject.remove(key);
+
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.remove("RecipeMap").commit();
+            editor.putString("RecipeMap", jsonObject.toString());
+            editor.commit();
+
+            values.remove(pos);
+            System.out.println("values is " + values.toString());
+            adapter.notifyItemRemoved(pos);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
 
 /* Reference
