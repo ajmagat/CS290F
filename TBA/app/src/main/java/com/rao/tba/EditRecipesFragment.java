@@ -82,6 +82,7 @@ public class EditRecipesFragment extends Fragment {
         recipeName = (EditText) rootView.findViewById(R.id.recipeName);
         btnSubmit = (Button) rootView.findViewById(R.id.btnSubmit);
 
+        final EditRecipesFragment instance = this;
         btnSubmit.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -129,6 +130,10 @@ public class EditRecipesFragment extends Fragment {
 
                         mRecipeList.add(newRecipe);
                         ((RecipeFragment) getFragmentManager().getFragments().get(1)).getRecipeListAdapter().notifyDataSetChanged();
+
+                        recipeName.setText("");
+                        spinner1.setSelection(1);
+                        spinner1.setSelection(2);
                     } else {
                         System.out.println("RecipeStore is null. First time access?");
                     }

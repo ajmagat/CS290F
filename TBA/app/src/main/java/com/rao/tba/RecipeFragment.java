@@ -141,6 +141,7 @@ public class RecipeFragment extends Fragment {
             values.remove(pos);
             System.out.println("values is " + values.toString());
             adapter.notifyItemRemoved(pos);
+            adapter.notifyItemRangeRemoved(pos, values.size());
         } catch (Exception e) {
             e.printStackTrace();
         }

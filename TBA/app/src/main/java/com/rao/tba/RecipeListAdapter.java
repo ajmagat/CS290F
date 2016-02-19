@@ -54,11 +54,11 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
         holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+                System.out.println("onLongClick");
                 TextView t = (TextView) v.findViewById(R.id.id);
-                String[] what = t.getText().toString().split("\n");
-                RecipeFragment.deleteFromMap(mContext, what[0], mValues, temp, holder.getAdapterPosition());
-                System.out.println("what is " + what.length);
-                Toast.makeText(mContext, "Deleting: " + what[0], Toast.LENGTH_SHORT).show();
+                String[] recipeItem = t.getText().toString().split("\n");
+                RecipeFragment.deleteFromMap(mContext, recipeItem[0], mValues, temp, holder.getAdapterPosition());
+                Toast.makeText(mContext, "Deleting: " + recipeItem[0], Toast.LENGTH_SHORT).show();
                 return true;
             }
         });
