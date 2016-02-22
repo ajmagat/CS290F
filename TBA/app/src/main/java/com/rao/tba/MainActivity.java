@@ -1,8 +1,10 @@
 package com.rao.tba;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -14,18 +16,24 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
 import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnListFragmentInteractionListener,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
 
     protected static final String TAG = "MainActivity";
 
+
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
+
+
 
     protected GoogleApiClient mGoogleApiClient;
 
@@ -131,8 +139,46 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
     }
 
     @Override
-    public void onConnected(Bundle bundle) {
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the broadcast receiver that informs this activity of the DetectedActivity
+        // object broadcast sent by the intent service.
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver,
+                new IntentFilter(Constants.BROADCAST_ACTION));
+    }
+
+    @Override
+    protected void onPause() {
+        // Unregister the broadcast receiver that was registered during onResume().
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        super.onPause();
+    }
+
+    /**
+     * Runs when a GoogleApiClient object successfully connects.
+     */
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        Log.i(TAG, "Connected to GoogleApiClient");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
+        // onConnectionFailed.
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
     @Override
@@ -144,19 +190,7 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
+    public void onResult(Status status) {
 
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mGoogleApiClient.disconnect();
     }
 }

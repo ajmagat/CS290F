@@ -19,7 +19,7 @@ import java.util.ArrayList;
  */
 public class DetectedActivitiesIntentService extends IntentService {
 
-    protected static final String TAG = "DetectedActivitiesIS";
+    protected static final String TAG = "DetectedActivitiesRAOST!!!!!!";
 
     /**
      * This constructor is required, and calls the super IntentService(String)
