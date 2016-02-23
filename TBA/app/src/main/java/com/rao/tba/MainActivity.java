@@ -11,10 +11,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
-import android.support.v4.app.FragmentTransaction;
-
-import android.support.v4.content.LocalBroadcastManager;
-
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -34,17 +30,12 @@ import java.util.Calendar;
 import java.util.List;
 
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
-import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
 
 import org.json.JSONObject;
 
@@ -53,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
 
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
+  //  protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
 
 
 
@@ -61,19 +52,6 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
 
 //    private boolean seenNotificationsOnce = false;
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        List<Fragment> allFrags = getSupportFragmentManager().getFragments();
-
-        if (allFrags.size() < 2) {
-            return;
-        }
-
-        final RecipeFragment temp = (RecipeFragment) allFrags.get(1);
-        temp.updateRecipeList();
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -234,16 +212,7 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
             }
         });
 
-
-
         alertDialog.create().show();
-
-  /*      System.out.println("hello there " + item.toString());
-        Toast.makeText(getApplicationContext(), item.toString(), Toast.LENGTH_SHORT).show();
-        List<Fragment> allFrags = getSupportFragmentManager().getFragments();
-        EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
-        temp.fillWithRecipe(item);
-        mViewPager.setCurrentItem(2);*/
     }
 
     @Override
@@ -259,19 +228,29 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+
+        List<Fragment> allFrags = getSupportFragmentManager().getFragments();
+
+        if (allFrags.size() < 2) {
+            return;
+        }
+
+        final RecipeFragment temp = (RecipeFragment) allFrags.get(1);
+        temp.updateRecipeList();
+
+        // Unregister the broadcast receiver that was registered during onResume().
+        //    LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         // Register the broadcast receiver that informs this activity of the DetectedActivity
         // object broadcast sent by the intent service.
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver,
-                new IntentFilter(Constants.BROADCAST_ACTION));
-    }
-
-    @Override
-    protected void onPause() {
-        // Unregister the broadcast receiver that was registered during onResume().
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
-        super.onPause();
+        //LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver,
+      //          new IntentFilter(Constants.BROADCAST_ACTION));
     }
 
     /**
