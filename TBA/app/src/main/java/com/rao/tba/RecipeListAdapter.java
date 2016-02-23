@@ -39,18 +39,19 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
         System.out.println("inside onBindViewHolder() with position " + position);
         holder.mItem = mValues.get(position);
         holder.mIdView.setText(holder.mItem.getName() + "\n" + holder.mItem.toReadableString());
+        final RecipeListAdapter temp = this;
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onListFragmentInteraction(holder.mItem);
+                    mListener.onListFragmentInteraction(holder.mItem, holder.getAdapterPosition(), temp, mValues);
                 }
             }
         });
 
-        final RecipeListAdapter temp = this;
+
         holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {

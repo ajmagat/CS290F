@@ -1,47 +1,129 @@
 package com.rao.tba;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by romankazarin on 2/15/16.
  */
 public class Recipe {
+    private ArrayList<String> mIfList;
+    private ArrayList<String> mThenList;
+    private ArrayList<String> mDoList;
 
-    private String m_if;
-    private String m_then1;
-    private String m_then2;
+    private String mName;
 
-    private String m_name;
-    public Recipe(String m_if, String m_then1, String m_then2, String recipeName) {
-        this.m_if = m_if;
-        this.m_then1 = m_then1;
-        this.m_then2 = m_then2;
-        this.m_name = recipeName;
+    /**
+     * @brief Constructor for Recipe given lists for if, then, and do
+     * @param ifList
+     * @param thenList
+     * @param doList
+     * @param recipeName
+     */
+    public Recipe(ArrayList<String> ifList, ArrayList<String> thenList, ArrayList<String> doList, String recipeName) {
+        mIfList = ifList;
+        mThenList = thenList;
+        mDoList = doList;
+        mName = recipeName;
     }
 
-    public Recipe(String serializedRecipe){
-        String[] parts = serializedRecipe.split("#");
-        this.m_if = parts[0];
-        this.m_then1 = parts[1];
-        this.m_then2 = parts[2];
-    }
-
+    /**
+     * @brief Constructor for Recipe given serialized version of Recipe
+     * @param serializedRecipe
+     * @param name
+     */
     public Recipe(String serializedRecipe, String name) {
-        String[] parts = serializedRecipe.split("#");
-        this.m_if = parts[0];
-        this.m_then1 = parts[1];
-        this.m_then2 = parts[2];
-        this.m_name = name;
+        List<String> partsList = new ArrayList<String>(Arrays.asList(serializedRecipe.split("!")));
+        mIfList = new ArrayList<>(Arrays.asList(partsList.get(0).split("#")));
+        mThenList = new ArrayList<>(Arrays.asList(partsList.get(1).split("#")));
+        mDoList = new ArrayList<>(Arrays.asList(partsList.get(2).split("#")));
+
+        mName = name;
     }
 
+    /**
+     * @brief Accessor method for recipe name
+     * @return mName
+     */
     public String getName() {
-        return this.m_name;
+        return mName;
     }
 
-    public String toString(){
-        return m_if + "#" + m_then1 + "#" + m_then2;
+    /**
+     * @brief Accessor method for if list
+     * @return mIfList
+     */
+    public ArrayList<String> getIfList() {
+        return mIfList;
     }
 
+    /**
+     * @brief Accesor method for then list
+     * @return mThenList
+     */
+    public ArrayList<String> getThenList() {
+        return mThenList;
+    }
+
+    /**
+     * @brief Accessor method for do list
+     * @return mDoList
+     */
+    public ArrayList<String> getDoList() {
+        return mDoList;
+    }
+
+    /**
+     * @brief Get serializable version of Recipe
+     * @return returnString
+     */
+    public String toString() {
+        String returnString = "";
+
+        if ( mIfList.size() > 0 ) {
+            for ( int i = 0; i < mIfList.size() - 1; i++ ) {
+                returnString += mIfList.get(i) + "#";
+            }
+            returnString += mIfList.get(mIfList.size() - 1) + "!";
+        }
+
+        if ( mThenList.size() > 0 ) {
+            for ( int i = 0; i < mThenList.size() - 1; i++ ) {
+                returnString += mThenList.get(i) + "#";
+            }
+            returnString += mThenList.get(mThenList.size() - 1) + "!";
+        }
+
+
+        if ( mDoList.size() > 0 ) {
+            for ( int i = 0; i < mDoList.size() - 1; i++ ) {
+                returnString += mDoList.get(i) + "#";
+            }
+
+            returnString += mDoList.get(mDoList.size() - 1);
+        }
+
+        return returnString;
+    }
+
+    /**
+     * @brief Get human readable version of Recipe
+     * @return returnString
+     */
     public String toReadableString(){
-        return "IF: " + m_if + " THEN: " + m_then1 + ", THEN: " + m_then2;
-    }
+        String returnString = "";
+        if ( mIfList.size() > 0 ) {
+            returnString += "IF: " + mIfList.get(0) + "... ";
+        }
 
+        if ( mThenList.size() > 0 ) {
+            returnString += "THEN: " + mThenList.get(0) + "..., ";
+        }
+
+        if ( mDoList.size() > 0 ) {
+            returnString += "DO: " + mDoList.get(0) + "...";
+        }
+        return returnString;
+    }
 }

@@ -23,7 +23,6 @@ public class RecipeFragment extends Fragment {
 
     // List to hold recipes
     private List<Recipe> mRecipes;
-    private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
     private RecipeListAdapter mListAdapter;
 
@@ -70,7 +69,6 @@ public class RecipeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        System.out.println("HELLO THERE FROM RECIPEFRAG");
         View view = inflater.inflate(R.layout.fragment_recipe_list, container, false);
 
         // Set the adapter
@@ -123,7 +121,7 @@ public class RecipeFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(Recipe item);
+        void onListFragmentInteraction(Recipe item, int pos, RecipeListAdapter adapter, List<Recipe> values);
     }
     public static void deleteFromMap( Context context, String key, List<Recipe> values, RecipeListAdapter adapter, int pos ) {
         try {

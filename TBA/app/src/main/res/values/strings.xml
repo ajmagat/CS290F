@@ -15,14 +15,14 @@
         <item>Sitting</item>
     </string-array>
 
-    <string-array name="then_1_array">
+    <string-array name="then_array">
         <item>Biking</item>
         <item>Driving</item>
         <item>Walking</item>
         <item>Sitting</item>
     </string-array>
 
-    <string-array name="then_2_array">
+    <string-array name="do_array">
         <item>Drop Pin</item>
     </string-array>
 

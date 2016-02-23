@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.widget.Spinner;
 
 import com.rao.tba.EditRecipesFragment;
 import com.rao.tba.NotificationsFragment;
@@ -26,11 +27,12 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     public SectionsPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
         fragmentArray = new Fragment[3];
-        ArrayList<Recipe> recipeList = new ArrayList<Recipe>();
+        ArrayList<Recipe> recipeList = new ArrayList<>();
 
         SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
 
         String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
+        System.out.println("Json string is " + jsonString);
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
             Iterator<String> keysItr = jsonObject.keys();
@@ -51,8 +53,6 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int position) {
         // getItem is called to instantiate the fragment for the given page.
-        // Return a PlaceholderFragment (defined as a static inner class below).
-        System.out.println("Get item called");
         if ( position == 0 ) {
             return fragmentArray[0];
         } else if ( position == 1 ) {
@@ -66,7 +66,6 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        // Show 3 total pages.
         return fragmentArray.length;
     }
 

@@ -1,7 +1,11 @@
 package com.rao.tba;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import android.support.v4.app.Fragment;
@@ -12,10 +16,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import android.app.AlertDialog.Builder;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,7 +33,9 @@ import java.util.List;
 
 import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
 
-public class MainActivity extends AppCompatActivity implements OnListFragmentInteractionListener {
+import org.json.JSONObject;
+
+public class MainActivity extends AppCompatActivity implements RecipeFragment.OnListFragmentInteractionListener {
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
@@ -69,8 +77,6 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
                 } else if (position == 2) {
                     setTitle("Edit Recipe");
                     EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
-                    temp.hello();
-
                 }
             }
 
@@ -132,10 +138,56 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
      * @brief This is the callback for when a Recipe item is clicked at the RecipeFragment
      * @param item
      */
-    public void onListFragmentInteraction(Recipe item) {
-        System.out.println("hello there " + item.toString());
+    public void onListFragmentInteraction(final Recipe item, final int pos, final RecipeListAdapter adapter, final List<Recipe> values) {
+        final Recipe dialogItem = item;
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this); //Read Update
+
+        alertDialog.setTitle(item.getName());
+        LayoutInflater inflater = getLayoutInflater();
+        View dialoglayout = inflater.inflate(R.layout.recipe_dialog, null);
+        alertDialog.setView(dialoglayout);
+        alertDialog.setPositiveButton("Edit Recipe", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                List<Fragment> allFrags = getSupportFragmentManager().getFragments();
+                EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
+                temp.fillWithRecipe(dialogItem);
+                mViewPager.setCurrentItem(2);
+            }
+        }).setNegativeButton("Cancel", null).setNeutralButton("Delete Recipe", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                try {
+                    System.out.println("Inside of deleteFromMap in RecipeFragment");
+                    SharedPreferences prefs = getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
+                    String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
+                    JSONObject jsonObject = new JSONObject(jsonString);
+                    jsonObject.remove(dialogItem.getName());
+
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.remove("RecipeMap").commit();
+                    editor.putString("RecipeMap", jsonObject.toString());
+                    editor.commit();
+
+                    values.remove(pos);
+                    System.out.println("values is " + values.toString());
+                    adapter.notifyItemRemoved(pos);
+                    adapter.notifyItemRangeRemoved(pos, values.size());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+
+        alertDialog.create().show();
+
+  /*      System.out.println("hello there " + item.toString());
         Toast.makeText(getApplicationContext(), item.toString(), Toast.LENGTH_SHORT).show();
         List<Fragment> allFrags = getSupportFragmentManager().getFragments();
-        mViewPager.setCurrentItem(2);
+        EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
+        temp.fillWithRecipe(item);
+        mViewPager.setCurrentItem(2);*/
     }
 }
