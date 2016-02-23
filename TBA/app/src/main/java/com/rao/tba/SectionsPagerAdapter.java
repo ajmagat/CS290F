@@ -32,14 +32,17 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
 
         String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
-        System.out.println("Json string is " + jsonString);
+
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
+
             Iterator<String> keysItr = jsonObject.keys();
+            int i = 0;
             while (keysItr.hasNext()) {
                 String key = keysItr.next();
                 String value = (String) jsonObject.get(key);
                 recipeList.add(new Recipe(value, key));
+                i++;
             }
         } catch (Exception e) {
             e.printStackTrace();

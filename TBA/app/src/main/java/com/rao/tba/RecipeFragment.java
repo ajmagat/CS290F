@@ -20,6 +20,7 @@ import java.util.List;
  */
 public class RecipeFragment extends Fragment {
     private static final String ARG_COLUMN_COUNT = "column-count";
+    private static final String MAP_NAME = "RecipeMap";
 
     // List to hold recipes
     private List<Recipe> mRecipes;
@@ -31,11 +32,6 @@ public class RecipeFragment extends Fragment {
      * fragment (e.g. upon screen orientation changes).
      */
     public RecipeFragment() {
-    }
-
-
-    public void printStuff() {
-        System.out.println(mRecipes.toString());
     }
 
     /**
@@ -120,100 +116,27 @@ public class RecipeFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnListFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onListFragmentInteraction(Recipe item, int pos, RecipeListAdapter adapter, List<Recipe> values);
     }
-    public static void deleteFromMap( Context context, String key, List<Recipe> values, RecipeListAdapter adapter, int pos ) {
+
+    /**
+     * @brief Method to force update of recipe list in shared preferences
+     */
+    public void updateRecipeList() {
         try {
-            System.out.println("Inside of deleteFromMap in RecipeFragment");
-            SharedPreferences prefs = context.getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
-            String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
-            JSONObject jsonObject = new JSONObject(jsonString);
-            jsonObject.remove(key);
-
+            SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
-            editor.remove("RecipeMap").commit();
-            editor.putString("RecipeMap", jsonObject.toString());
-            editor.commit();
 
-            values.remove(pos);
-            System.out.println("values is " + values.toString());
-            adapter.notifyItemRemoved(pos);
-            adapter.notifyItemRangeRemoved(pos, values.size());
+            JSONObject jsonObject = new JSONObject();
+
+            for ( Recipe r : mRecipes ) {
+                jsonObject.put(r.getName(), r.toString());
+            }
+
+            //write the updated map to prefs
+            editor.putString(MAP_NAME, jsonObject.toString()).commit();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }
-
-/* Reference
-    public static class ViewRecipesFragment extends ListFragment {
-        private List<RecipeFragment> mRecipes;
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public ViewRecipesFragment() {
-        }
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            mRecipes = new ArrayList<RecipeFragment>();
-        }
-
-        public static ViewRecipesFragment newInstance(int sectionNumber) {
-            ViewRecipesFragment fragment = new ViewRecipesFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-            Map<String, String> recipeMap = new HashMap<String, String>();
-            SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RecipeStore", MODE_PRIVATE);
-
-            //Create layout
-            LinearLayout layout = new LinearLayout(getActivity());
-            layout.setOrientation(LinearLayout.VERTICAL);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-            layout.setLayoutParams(lp);
-
-
-            //Create button for each recipe
-            try{
-                if (prefs != null){
-                    String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
-                    JSONObject jsonObject = new JSONObject(jsonString);
-                    Iterator<String> keysItr = jsonObject.keys();
-                    while(keysItr.hasNext()) {
-                        String key = keysItr.next();
-                        String value = (String) jsonObject.get(key);
-
-                        Button myButton = new Button(getActivity());
-                        myButton.setText("Edit \"" + key + "\" Recipe");
-                        LinearLayout.LayoutParams button_lp = new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.MATCH_PARENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT);
-
-                        myButton.setLayoutParams(button_lp);
-                        layout.addView(myButton);
-                    }
-
-                } else {
-                    System.out.println("RecipeStore is null.");
-                }
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-
-            ViewGroup viewGroup = (ViewGroup) rootView;
-            viewGroup.addView(layout);
-            return rootView;
-        }
-    }
- */

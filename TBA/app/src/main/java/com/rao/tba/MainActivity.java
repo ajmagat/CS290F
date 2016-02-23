@@ -21,17 +21,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import android.app.AlertDialog.Builder;
-import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-
-import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
 
 import org.json.JSONObject;
 
@@ -39,6 +35,19 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        List<Fragment> allFrags = getSupportFragmentManager().getFragments();
+
+        if (allFrags.size() < 2) {
+            return;
+        }
+
+        final RecipeFragment temp = (RecipeFragment) allFrags.get(1);
+        temp.updateRecipeList();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,15 +74,13 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
              */
             @Override
             public void onPageSelected(int position) {
-                System.out.println("OnPageSelected " + position);
                 List<Fragment> allFrags = getSupportFragmentManager().getFragments();
-                System.out.println(allFrags.toString());
+
                 if (position == 0) {
                     setTitle("Notifications");
                 } else if (position == 1) {
                     setTitle("My Recipes");
                     RecipeFragment temp = (RecipeFragment) allFrags.get(1);
-                    temp.printStuff();
                 } else if (position == 2) {
                     setTitle("Edit Recipe");
                     EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
@@ -85,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
             }
         });
     }
+
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -140,17 +148,28 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
      */
     public void onListFragmentInteraction(final Recipe item, final int pos, final RecipeListAdapter adapter, final List<Recipe> values) {
         final Recipe dialogItem = item;
+        List<Fragment> allFrags = getSupportFragmentManager().getFragments();
+        final EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this); //Read Update
+
 
         alertDialog.setTitle(item.getName());
         LayoutInflater inflater = getLayoutInflater();
         View dialoglayout = inflater.inflate(R.layout.recipe_dialog, null);
+
+        CheckBox onCheckBox = (CheckBox) dialoglayout.findViewById(R.id.recipe_checkbox);
+        onCheckBox.setChecked(dialogItem.getOn());
+        onCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                dialogItem.setOn(isChecked);
+            }
+        });
+
         alertDialog.setView(dialoglayout);
         alertDialog.setPositiveButton("Edit Recipe", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                List<Fragment> allFrags = getSupportFragmentManager().getFragments();
-                EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
                 temp.fillWithRecipe(dialogItem);
                 mViewPager.setCurrentItem(2);
             }
@@ -158,7 +177,6 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 try {
-                    System.out.println("Inside of deleteFromMap in RecipeFragment");
                     SharedPreferences prefs = getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
                     String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
                     JSONObject jsonObject = new JSONObject(jsonString);
@@ -170,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
                     editor.commit();
 
                     values.remove(pos);
-                    System.out.println("values is " + values.toString());
                     adapter.notifyItemRemoved(pos);
                     adapter.notifyItemRangeRemoved(pos, values.size());
                 } catch (Exception e) {

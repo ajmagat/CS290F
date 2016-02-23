@@ -32,7 +32,9 @@ import java.util.Map;
  * @brief Fragment used for the editing of recipes
  */
 public class EditRecipesFragment extends Fragment {
+    // TODO(afresh): Make RecipeMap a member variable so we don't have to go into shared preferences all the time
     private static final String ARG_SECTION_NUMBER = "section_number";
+    private static final String MAP_NAME = "RecipeMap";
     private List<Recipe> mRecipeList;
 
     private Button btnSubmit;
@@ -194,29 +196,18 @@ public class EditRecipesFragment extends Fragment {
                 ListView listIfView = (ListView) getView().findViewById(R.id.ifList);
                 ListView listThenView = (ListView) getView().findViewById(R.id.thenList);
                 ListView listDoView = (ListView) getView().findViewById(R.id.doList);
-                if ( recipeName.getText().toString().replaceAll("\\s+","").length() < 1 || listIfView.getChildCount() == 0 || listDoView.getChildCount() == 0) {
+
+                if (recipeName.getText().toString().replaceAll("\\s+", "").length() < 1 || listIfView.getChildCount() == 0 || listDoView.getChildCount() == 0) {
                     Toast.makeText(getContext(), "Please Enter: Recipe Name and at least 1 IF and DO", Toast.LENGTH_LONG).show();
                     return;
                 }
 
-                //Read in all existing recipes to a map
-                Map<String, String> recipeMap = new HashMap<String, String>();
                 SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
 
                 try {
                     if (prefs != null) {
-                        System.out.println("RecipeStore is not null");
-                        String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
+                        String jsonString = prefs.getString(MAP_NAME, (new JSONObject()).toString());
                         JSONObject jsonObject = new JSONObject(jsonString);
-                        Iterator<String> keysItr = jsonObject.keys();
-                        while (keysItr.hasNext()) {
-                            String key = keysItr.next();
-                            String value = (String) jsonObject.get(key);
-                            recipeMap.put(key, value);
-                        }
-
-                        System.out.println("RECIPE MAP BEFORE ADDITION: ");
-                        System.out.println(recipeMap);
 
                         String recipe_name = recipeName.getText().toString();
                         ArrayList<String> ifArray = new ArrayList<>();
@@ -251,19 +242,12 @@ public class EditRecipesFragment extends Fragment {
                             doArray.add(recipePart);
                         }
 
-                        System.out.println("Value of if array is " + ifArray.toString());
-
                         Recipe newRecipe = new Recipe(ifArray, thenArray, doArray, recipe_name);
                         String newRecipeString = newRecipe.toString();
-                        recipeMap.put(recipe_name, newRecipeString);
-
-                        //write the updated map to prefs
-                        JSONObject jsonObjectToWrite = new JSONObject(recipeMap);
-                        String jsonStringToWrite = jsonObjectToWrite.toString();
+                        jsonObject.put(recipe_name, newRecipeString);
 
                         SharedPreferences.Editor editor = prefs.edit();
-                        editor.remove("RecipeMap").commit();
-                        editor.putString("RecipeMap", jsonStringToWrite);
+                        editor.putString(MAP_NAME, jsonObject.toString());
                         editor.commit();
 
                         mRecipeList.add(newRecipe);

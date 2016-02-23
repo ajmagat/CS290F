@@ -13,6 +13,7 @@ public class Recipe {
     private ArrayList<String> mDoList;
 
     private String mName;
+    private boolean mOn;
 
     /**
      * @brief Constructor for Recipe given lists for if, then, and do
@@ -26,6 +27,7 @@ public class Recipe {
         mThenList = thenList;
         mDoList = doList;
         mName = recipeName;
+        mOn = true;
     }
 
     /**
@@ -34,10 +36,11 @@ public class Recipe {
      * @param name
      */
     public Recipe(String serializedRecipe, String name) {
-        List<String> partsList = new ArrayList<String>(Arrays.asList(serializedRecipe.split("!")));
-        mIfList = new ArrayList<>(Arrays.asList(partsList.get(0).split("#")));
-        mThenList = new ArrayList<>(Arrays.asList(partsList.get(1).split("#")));
-        mDoList = new ArrayList<>(Arrays.asList(partsList.get(2).split("#")));
+        List<String> partsList = new ArrayList<>(Arrays.asList(serializedRecipe.split("!")));
+        mOn = Boolean.valueOf(partsList.get(0));
+        mIfList = new ArrayList<>(Arrays.asList(partsList.get(1).split("#")));
+        mThenList = new ArrayList<>(Arrays.asList(partsList.get(2).split("#")));
+        mDoList = new ArrayList<>(Arrays.asList(partsList.get(3).split("#")));
 
         mName = name;
     }
@@ -50,6 +53,21 @@ public class Recipe {
         return mName;
     }
 
+    /**
+     * @brief Mutator method for mOn
+     * @param on
+     */
+    public void setOn(boolean on) {
+        mOn = on;
+    }
+
+    /**
+     * @brief Accessor method for mOn
+     * @return mOn
+     */
+    public boolean getOn() {
+        return mOn;
+    }
     /**
      * @brief Accessor method for if list
      * @return mIfList
@@ -79,7 +97,7 @@ public class Recipe {
      * @return returnString
      */
     public String toString() {
-        String returnString = "";
+        String returnString = Boolean.toString(mOn) + "!";
 
         if ( mIfList.size() > 0 ) {
             for ( int i = 0; i < mIfList.size() - 1; i++ ) {

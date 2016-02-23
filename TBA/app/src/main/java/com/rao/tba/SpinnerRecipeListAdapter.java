@@ -23,10 +23,7 @@ public class SpinnerRecipeListAdapter extends ArrayAdapter<int[]> {
     public View getView(int position, View convertView, ViewGroup parent) {
         // Get the data item for this position
         int[] spinnerType = getItem(position);
-        // Check if an existing view is being reused, otherwise inflate the view
 
-        System.out.println("Spinner type is " + spinnerType[0]);
-        System.out.println("Spinner second type is " + spinnerType[1]);
         if (spinnerType[0] == 0) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.fragment_if_spinner, parent, false);
             Spinner temp = (Spinner) convertView.findViewById(R.id.if_recipe_spinner);

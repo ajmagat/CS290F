@@ -36,7 +36,6 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        System.out.println("inside onBindViewHolder() with position " + position);
         holder.mItem = mValues.get(position);
         holder.mIdView.setText(holder.mItem.getName() + "\n" + holder.mItem.toReadableString());
         final RecipeListAdapter temp = this;
@@ -48,19 +47,6 @@ public class RecipeListAdapter extends RecyclerView.Adapter<RecipeListAdapter.Vi
                     // fragment is attached to one) that an item has been selected.
                     mListener.onListFragmentInteraction(holder.mItem, holder.getAdapterPosition(), temp, mValues);
                 }
-            }
-        });
-
-
-        holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                System.out.println("onLongClick");
-                TextView t = (TextView) v.findViewById(R.id.id);
-                String[] recipeItem = t.getText().toString().split("\n");
-                RecipeFragment.deleteFromMap(mContext, recipeItem[0], mValues, temp, holder.getAdapterPosition());
-                Toast.makeText(mContext, "Deleting: " + recipeItem[0], Toast.LENGTH_SHORT).show();
-                return true;
             }
         });
     }
