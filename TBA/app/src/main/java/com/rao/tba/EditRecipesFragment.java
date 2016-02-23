@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -190,6 +191,13 @@ public class EditRecipesFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
+                ListView listIfView = (ListView) getView().findViewById(R.id.ifList);
+                ListView listThenView = (ListView) getView().findViewById(R.id.thenList);
+                ListView listDoView = (ListView) getView().findViewById(R.id.doList);
+                if ( recipeName.getText().toString().replaceAll("\\s+","").length() < 1 || listIfView.getChildCount() == 0 || listDoView.getChildCount() == 0) {
+                    Toast.makeText(getContext(), "Please Enter: Recipe Name and at least 1 IF and DO", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
                 //Read in all existing recipes to a map
                 Map<String, String> recipeMap = new HashMap<String, String>();
@@ -218,9 +226,6 @@ public class EditRecipesFragment extends Fragment {
                         View v2;
                         String recipePart = "";
                         Spinner tempSpinner;
-                        ListView listIfView = (ListView) getView().findViewById(R.id.ifList);
-                        ListView listThenView = (ListView) getView().findViewById(R.id.thenList);
-                        ListView listDoView = (ListView) getView().findViewById(R.id.doList);
 
                         for (int i = 0; i < listIfView.getChildCount(); i++) {
                             v2 = listIfView.getChildAt(i);
