@@ -4,14 +4,18 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-
 import android.content.SharedPreferences;
+
+import android.content.IntentFilter;
+
 import android.os.Bundle;
-
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
 
+import android.support.v4.app.FragmentTransaction;
+
+import android.support.v4.content.LocalBroadcastManager;
+
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -29,11 +33,33 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.ActivityRecognition;
+import com.rao.tba.RecipeFragment.OnListFragmentInteractionListener;
+
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity implements RecipeFragment.OnListFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
+    protected static final String TAG = "MainActivity";
+
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
+
+
+
+    protected GoogleApiClient mGoogleApiClient;
+
+//    private boolean seenNotificationsOnce = false;
 
     @Override
     protected void onPause() {
@@ -78,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
 
                 if (position == 0) {
                     setTitle("Notifications");
+
                 } else if (position == 1) {
                     setTitle("My Recipes");
                     RecipeFragment temp = (RecipeFragment) allFrags.get(1);
@@ -91,6 +118,17 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
             public void onPageScrollStateChanged(int state) {
             }
         });
+
+        buildGoogleApiClient();
+    }
+
+    // Setup GoogleAPI client
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(ActivityRecognition.API)
+                .build();
     }
 
 
@@ -206,5 +244,61 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
         EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
         temp.fillWithRecipe(item);
         mViewPager.setCurrentItem(2);*/
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the broadcast receiver that informs this activity of the DetectedActivity
+        // object broadcast sent by the intent service.
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver,
+                new IntentFilter(Constants.BROADCAST_ACTION));
+    }
+
+    @Override
+    protected void onPause() {
+        // Unregister the broadcast receiver that was registered during onResume().
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        super.onPause();
+    }
+
+    /**
+     * Runs when a GoogleApiClient object successfully connects.
+     */
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        Log.i(TAG, "Connected to GoogleApiClient");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
+        // onConnectionFailed.
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+    }
+
+    @Override
+    public void onConnectionSuspended(int cause) {
+        // The connection to Google Play services was lost for some reason. We call connect() to
+        // attempt to re-establish the connection.
+        Log.i(TAG, "Connection suspended");
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onResult(Status status) {
+
     }
 }
