@@ -1,6 +1,8 @@
 package com.rao.tba;
 
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,11 +13,11 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,10 +25,8 @@ import android.view.View;
 
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.List;
 
 import android.util.Log;
@@ -36,6 +36,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.DetectedActivity;
 
 import org.json.JSONObject;
 
@@ -44,13 +45,11 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
 
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
-  //  protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
+    private PendingIntent mPendingIntent;
+    private NotificationsAdapter mAdapter;
 
-
-
+    protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
     protected GoogleApiClient mGoogleApiClient;
-
-//    private boolean seenNotificationsOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,14 +58,17 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
+
+        mBroadcastReceiver = new ActivityDetectionBroadcastReceiver();
+
+        // Create the adapter that will return a fragment for each of the three primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), getApplicationContext());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        // Listen for changes of fragment
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -82,7 +84,6 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
 
                 if (position == 0) {
                     setTitle("Notifications");
-
                 } else if (position == 1) {
                     setTitle("My Recipes");
                     RecipeFragment temp = (RecipeFragment) allFrags.get(1);
@@ -97,31 +98,27 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
             }
         });
 
+        // Create Google API Client
         buildGoogleApiClient();
     }
 
-    // Setup GoogleAPI client
+    /**
+     * @brief Method to set up Google API Client and begin listening for activity
+     */
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(ActivityRecognition.API)
                 .build();
-    }
 
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_ENTER) {
-            //Add demo notification
-            List<Fragment> allFrags = getSupportFragmentManager().getFragments();
-            NotificationsFragment notiFrag= (NotificationsFragment) allFrags.get(0);
-            TextView notiView = (TextView) notiFrag.getView().findViewById(R.id.bikeNotification);
-            String timeStamp = new SimpleDateFormat("MM/dd HH:mm").format(Calendar.getInstance().getTime());
-            notiView.setText("Dropped bike pin " + timeStamp);
+        if (mPendingIntent == null) {
+            Intent intent = new Intent(this, TransitionIntentService.class);
+            PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            mPendingIntent = pendingIntent;
         }
-        return true;
     }
+
 
     public void showMap(View v) {
 
@@ -241,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
         temp.updateRecipeList();
 
         // Unregister the broadcast receiver that was registered during onResume().
-        //    LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
     }
 
     @Override
@@ -249,8 +246,7 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
         super.onResume();
         // Register the broadcast receiver that informs this activity of the DetectedActivity
         // object broadcast sent by the intent service.
-        //LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver,
-      //          new IntentFilter(Constants.BROADCAST_ACTION));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.BROADCAST_ACTION));
     }
 
     /**
@@ -259,19 +255,18 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
     @Override
     public void onConnected(Bundle connectionHint) {
         Log.i(TAG, "Connected to GoogleApiClient");
+        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.DETECTION_INTERVAL_IN_MILLISECONDS, mPendingIntent);
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-        // onConnectionFailed.
+        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in onConnectionFailed.
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
-        // The connection to Google Play services was lost for some reason. We call connect() to
-        // attempt to re-establish the connection.
+        // The connection to Google Play services was lost for some reason. We call connect() to attempt to re-establish the connection.
         Log.i(TAG, "Connection suspended");
         mGoogleApiClient.connect();
     }
@@ -279,5 +274,33 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
     @Override
     public void onResult(Status status) {
 
+    }
+
+    /**
+     * Processes the list of freshly detected activities. Asks the adapter to update its list of
+     * DetectedActivities with new {@code DetectedActivity} objects reflecting the latest detected
+     * activities.
+     */
+    protected void updateDetectedActivitiesList(ArrayList<DetectedActivity> detectedActivities) {
+        mAdapter.updateActivities(detectedActivities);
+    }
+
+    /**
+     * Receiver for intents sent by DetectedActivitiesIntentService via a sendBroadcast().
+     * Receives a list of one or more DetectedActivity objects associated with the current state of
+     * the device.
+     */
+    public class ActivityDetectionBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.e("A-Fresh", "Got something");
+            ArrayList<DetectedActivity> updatedActivities =
+                    intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
+
+            for (DetectedActivity d : updatedActivities) {
+                Log.e("A-Fresh", "Got: " + d.toString() + " with confidence " + d.getConfidence());
+            }
+        }
     }
 }

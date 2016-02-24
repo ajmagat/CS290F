@@ -1,5 +1,8 @@
 package com.rao.tba;
 
+import android.content.Context;
+import android.content.res.Resources;
+
 import com.google.android.gms.location.DetectedActivity;
 
 /**
@@ -45,5 +48,30 @@ public final class Constants {
             DetectedActivity.UNKNOWN
     };
 
-
+    /**
+     * Returns a human readable String corresponding to a detected activity type.
+     */
+    public static String getActivityString(Context context, int detectedActivityType) {
+        Resources resources = context.getResources();
+        switch(detectedActivityType) {
+            case DetectedActivity.IN_VEHICLE:
+                return "in vehicle";
+            case DetectedActivity.ON_BICYCLE:
+                return "on bicycle";
+            case DetectedActivity.ON_FOOT:
+                return "on foot";
+            case DetectedActivity.RUNNING:
+                return "running";
+            case DetectedActivity.STILL:
+                return "still";
+            case DetectedActivity.TILTING:
+                return "tilting";
+            case DetectedActivity.UNKNOWN:
+                return "unknown";
+            case DetectedActivity.WALKING:
+                return "walking";
+            default:
+                return "not sure " + detectedActivityType;
+        }
+    }
 }
