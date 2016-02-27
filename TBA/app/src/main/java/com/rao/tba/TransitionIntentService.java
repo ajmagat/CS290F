@@ -1,9 +1,11 @@
 package com.rao.tba;
 
 import android.app.IntentService;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.Context;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 
 
 public class TransitionIntentService extends IntentService {
+    static int mNotificationId;
     public TransitionIntentService() {
         super("TransitionIntentService");
     }
@@ -39,9 +42,33 @@ public class TransitionIntentService extends IntentService {
 
             Log.e("A-Fresh", "about to do this");
             // Broadcast the list of detected activities.
-            localIntent.putExtra(Constants.ACTIVITY_EXTRA, detectedActivities);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+            //localIntent.putExtra(Constants.ACTIVITY_EXTRA, detectedActivities);
+            //LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
             Log.e("A-Fresh", "end this");
+
+            for (DetectedActivity d : detectedActivities )
+            {
+                System.out.println(d.toString() + " with confidence " + d.getConfidence());
+                if ( d.getConfidence() > 50 )
+                {
+
+                    NotificationCompat.Builder notification = new NotificationCompat.Builder(this);
+                    notification.setContentTitle("TBA").setContentInfo("Activity " + d.toString() + " with confidence " + d.getConfidence());
+                    notification.setSmallIcon(R.drawable.common_signin_btn_icon_dark);
+
+                    mNotificationId++;
+                    System.out.println("Notification " + mNotificationId);
+                    if (mNotificationId % 5 == 0 )
+                    {
+                        System.out.println("about to send notification " + mNotificationId);
+                        NotificationManager mNotifyMgr =
+                                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+                        mNotifyMgr.notify(mNotificationId, notification.build());
+                    }
+
+                }
+            }
         }
     }
 }
