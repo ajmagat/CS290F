@@ -6,30 +6,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-
 import android.content.IntentFilter;
-
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -40,8 +32,14 @@ import com.google.android.gms.location.DetectedActivity;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
     protected static final String TAG = "MainActivity";
+
+    private String previousState = "UKNOWN";
+    private String currentState = "UKNOWN";
 
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -299,7 +297,16 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
                     intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
 
             for (DetectedActivity d : updatedActivities) {
-                Log.e("A-Fresh", "Got: " + d.toString() + " with confidence " + d.getConfidence());
+                if (d.getConfidence() > 0) {
+                    Toast.makeText(getApplicationContext(), "A-fuckboy Got: " + d.toString() + " with confidence " + Integer.toString(d.getConfidence()), Toast.LENGTH_SHORT).show();
+                    if(d.getConfidence() > 50 && !d.toString().equals(currentState)) {
+                        Toast.makeText(getApplicationContext(), "Changing current activity to: " + d.toString(), Toast.LENGTH_SHORT).show();
+                        Log.i(TAG, "Changing current activity to: " + d.toString());
+                        previousState = currentState;
+                        currentState = d.toString();
+                    }
+                }
+
             }
         }
     }
