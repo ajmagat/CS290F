@@ -17,8 +17,8 @@ public class TransitionIntentService extends IntentService {
     static int mNotificationId;
 
     protected static final String TAG = "TransitionIntentService";
-    private String previousState = "Unknown";
-    private String currentState = "Unknown";
+    private static String previousState = "Unknown";
+    private static String currentState = "Unknown";
 
     public TransitionIntentService() {
         super("TransitionIntentService");
@@ -77,14 +77,20 @@ public class TransitionIntentService extends IntentService {
                     String ourType = Constants.getActivityString(getApplicationContext(), d.getType());
                     Log.e(TAG, "Our type: " + ourType);
 
-                    if(d.getConfidence() > 70 && !d.toString().equals(currentState)) {
+                    if(d.getConfidence() > 70 && !ourType.equals(currentState)) {
 
 
                         Toast.makeText(getApplicationContext(), "Changing current activity to: " + ourType, Toast.LENGTH_SHORT).show();
                         Log.e(TAG, "Changing current activity to: " + ourType);
 
+                        Log.e(TAG, "previousState: " + previousState);
+                        Log.e(TAG, "currentState: " + currentState + "\n---------");
+
                         previousState = currentState;
                         currentState = ourType;
+
+                        Log.e(TAG, "previousState: " + previousState);
+                        Log.e(TAG, "currentState: " + currentState);
 
                         for(Recipe r : EditRecipesFragment.mRecipeList) {
                             if(r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
@@ -97,7 +103,6 @@ public class TransitionIntentService extends IntentService {
                             }
                         }
                     }
-
                 }
             }
         }
