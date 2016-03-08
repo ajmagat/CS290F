@@ -55,21 +55,21 @@ public final class Constants {
         Resources resources = context.getResources();
         switch(detectedActivityType) {
             case DetectedActivity.IN_VEHICLE:
-                return "in vehicle";
+                return "Driving";
             case DetectedActivity.ON_BICYCLE:
-                return "on bicycle";
+                return "Biking";
             case DetectedActivity.ON_FOOT:
                 return "on foot";
             case DetectedActivity.RUNNING:
-                return "running";
+                return "Running";
             case DetectedActivity.STILL:
-                return "still";
+                return "Still";
             case DetectedActivity.TILTING:
-                return "tilting";
+                return "Tilting";
             case DetectedActivity.UNKNOWN:
-                return "unknown";
+                return "Unknown";
             case DetectedActivity.WALKING:
-                return "walking";
+                return "Walking";
             default:
                 return "not sure " + detectedActivityType;
         }

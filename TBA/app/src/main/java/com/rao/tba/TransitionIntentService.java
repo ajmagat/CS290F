@@ -3,10 +3,9 @@ package com.rao.tba;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.content.Intent;
-import android.content.Context;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
@@ -16,6 +15,11 @@ import java.util.ArrayList;
 
 public class TransitionIntentService extends IntentService {
     static int mNotificationId;
+
+    protected static final String TAG = "TransitionIntentService";
+    private String previousState = "Unknown";
+    private String currentState = "Unknown";
+
     public TransitionIntentService() {
         super("TransitionIntentService");
     }
@@ -49,7 +53,7 @@ public class TransitionIntentService extends IntentService {
             for (DetectedActivity d : detectedActivities )
             {
                 System.out.println(d.toString() + " with confidence " + d.getConfidence());
-                if ( d.getConfidence() > 50 )
+                if ( d.getConfidence() > 30 )
                 {
 
                     NotificationCompat.Builder notification = new NotificationCompat.Builder(this);
@@ -65,6 +69,33 @@ public class TransitionIntentService extends IntentService {
                                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
                         mNotifyMgr.notify(mNotificationId, notification.build());
+                    }
+
+
+                    Toast.makeText(getApplicationContext(), "A-fuckboy Got: " + d.toString() + " with confidence " + Integer.toString(d.getConfidence()), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "A-fuckboy Got: " + d.toString() + " Of type: " + d.getType());
+                    String ourType = Constants.getActivityString(getApplicationContext(), d.getType());
+                    Log.e(TAG, "Our type: " + ourType);
+
+                    if(d.getConfidence() > 70 && !d.toString().equals(currentState)) {
+
+
+                        Toast.makeText(getApplicationContext(), "Changing current activity to: " + ourType, Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Changing current activity to: " + ourType);
+
+                        previousState = currentState;
+                        currentState = ourType;
+
+                        for(Recipe r : EditRecipesFragment.mRecipeList) {
+                            if(r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
+                                String action = r.getDoList().get(0);
+
+                                Toast.makeText(getApplicationContext(), "Found matching recipe. Performing action: " + action, Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, "Found matching recipe. Performing action: " + action);
+
+                                // dropPinHereBrah();
+                            }
+                        }
                     }
 
                 }

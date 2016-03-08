@@ -38,8 +38,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
     protected static final String TAG = "MainActivity";
 
-    private String previousState = "UKNOWN";
-    private String currentState = "UKNOWN";
+    private String previousState = "Unknown";
+    private String currentState = "Unknown";
 
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -297,16 +297,33 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
                     intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
 
             for (DetectedActivity d : updatedActivities) {
+                Log.e(TAG, "QUEEEEF");
                 if (d.getConfidence() > 0) {
                     Toast.makeText(getApplicationContext(), "A-fuckboy Got: " + d.toString() + " with confidence " + Integer.toString(d.getConfidence()), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "A-fuckboy Got: " + d.toString());
+
                     if(d.getConfidence() > 50 && !d.toString().equals(currentState)) {
-                        Toast.makeText(getApplicationContext(), "Changing current activity to: " + d.toString(), Toast.LENGTH_SHORT).show();
-                        Log.i(TAG, "Changing current activity to: " + d.toString());
+
+                        String newActivity = d.toString().toUpperCase();
+
+                        Toast.makeText(getApplicationContext(), "Changing current activity to: " + newActivity, Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Changing current activity to: " + newActivity);
+
                         previousState = currentState;
-                        currentState = d.toString();
+                        currentState = newActivity;
+
+                        for(Recipe r : EditRecipesFragment.mRecipeList) {
+                            if(r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
+                                String action = r.getDoList().get(0);
+
+                                Toast.makeText(getApplicationContext(), "Found matching recipe. Performing action: " + action, Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, "Found matching recipe. Performing action: " + action);
+
+                                // dropPinHereBrah();
+                            }
+                        }
                     }
                 }
-
             }
         }
     }
