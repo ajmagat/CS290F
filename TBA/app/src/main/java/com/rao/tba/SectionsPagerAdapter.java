@@ -28,27 +28,35 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         super(fm);
         fragmentArray = new Fragment[3];
         ArrayList<Recipe> recipeList = new ArrayList<>();
+        ArrayList<Notification> notificationList = new ArrayList<>();
 
         SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
 
         String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
-
+        String jsonNotificationString = prefs.getString("NotificationMap", (new JSONObject()).toString());
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
 
             Iterator<String> keysItr = jsonObject.keys();
-            int i = 0;
             while (keysItr.hasNext()) {
                 String key = keysItr.next();
                 String value = (String) jsonObject.get(key);
                 recipeList.add(new Recipe(value, key));
-                i++;
+            }
+
+            JSONObject jsonNotificationObject = new JSONObject(jsonNotificationString);
+            Iterator<String> nKeysItr = jsonNotificationObject.keys();
+
+            while (nKeysItr.hasNext()) {
+                String key = nKeysItr.next();
+                String value = (String) jsonNotificationObject.get(key);
+                notificationList.add(new Notification(value, key));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        fragmentArray[0] = NotificationsFragment.newInstance(1);
+        fragmentArray[0] = NotificationsFragment.newInstance(1, notificationList);
         fragmentArray[1] = RecipeFragment.newInstance(1, recipeList);
         fragmentArray[2] = EditRecipesFragment.newInstance(3, recipeList);
     }

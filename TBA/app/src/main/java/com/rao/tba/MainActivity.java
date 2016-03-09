@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -29,14 +30,19 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.DetectedActivity;
+import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
+public class MainActivity extends AppCompatActivity implements RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, LocationListener {
     protected static final String TAG = "MainActivity";
+
 
     private String previousState = "Unknown";
     private String currentState = "Unknown";
@@ -44,16 +50,26 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private PendingIntent mPendingIntent;
-    private NotificationsAdapter mAdapter;
+    private LocationRequest mLocationRequest;
+    private PendingIntent mLocationIntent;
+    private NotificationListAdapter mAdapter;
 
     protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
     protected GoogleApiClient mGoogleApiClient;
 
     @Override
+    public void onLocationChanged(Location location) {
+        Log.e(TAG, "In here?");
+
+        Log.w(TAG, location.toString());
+
+        //mWhat.getLooper().quitSafely();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -108,12 +124,23 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(ActivityRecognition.API)
+             //   .addApi(LocationServices.API)
                 .build();
 
         if (mPendingIntent == null) {
             Intent intent = new Intent(this, TransitionIntentService.class);
             PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             mPendingIntent = pendingIntent;
+        }
+
+        if (mLocationRequest == null) {
+            mLocationRequest = LocationRequest.create();
+            mLocationRequest.setInterval(5000);
+        }
+
+        if (mLocationIntent == null) {
+            Intent locationIntent = new Intent(this, TransitionIntentService.class);
+            mLocationIntent = PendingIntent.getService(this, 0, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
     }
 
@@ -254,6 +281,7 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
     public void onConnected(Bundle connectionHint) {
         Log.i(TAG, "Connected to GoogleApiClient");
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.DETECTION_INTERVAL_IN_MILLISECONDS, mPendingIntent);
+     //   LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
     @Override
@@ -280,7 +308,6 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
      * activities.
      */
     protected void updateDetectedActivitiesList(ArrayList<DetectedActivity> detectedActivities) {
-        mAdapter.updateActivities(detectedActivities);
     }
 
     /**
@@ -292,39 +319,48 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.e("A-Fresh", "Got something");
-            ArrayList<DetectedActivity> updatedActivities =
-                    intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
-
-            for (DetectedActivity d : updatedActivities) {
-                Log.e(TAG, "QUEEEEF");
-                if (d.getConfidence() > 0) {
-                    Toast.makeText(getApplicationContext(), "A-fuckboy Got: " + d.toString() + " with confidence " + Integer.toString(d.getConfidence()), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "A-fuckboy Got: " + d.toString());
-
-                    if(d.getConfidence() > 50 && !d.toString().equals(currentState)) {
-
-                        String newActivity = d.toString().toUpperCase();
-
-                        Toast.makeText(getApplicationContext(), "Changing current activity to: " + newActivity, Toast.LENGTH_SHORT).show();
-                        Log.e(TAG, "Changing current activity to: " + newActivity);
-
-                        previousState = currentState;
-                        currentState = newActivity;
-
-                        for(Recipe r : EditRecipesFragment.mRecipeList) {
-                            if(r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
-                                String action = r.getDoList().get(0);
-
-                                Toast.makeText(getApplicationContext(), "Found matching recipe. Performing action: " + action, Toast.LENGTH_SHORT).show();
-                                Log.e(TAG, "Found matching recipe. Performing action: " + action);
-
-                                // dropPinHereBrah();
-                            }
-                        }
-                    }
-                }
-            }
+//            Log.e("A-Fresh", "Got something");
+//            ArrayList<DetectedActivity> updatedActivities =
+//                    intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
+//
+//            Location last = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+//
+//            if (last == null) {
+//                Log.e("sigh", "sigh");
+//            } else {
+//                Log.w("a-fresh", last.toString());
+//            }
+//            for (DetectedActivity d : updatedActivities) {
+//
+//                Log.e(TAG, "QUEEEEF");
+//                if (d.getConfidence() > 0) {
+//                    Toast.makeText(getApplicationContext(), "A-fuckboy Got: " + d.toString() + " with confidence " + Integer.toString(d.getConfidence()), Toast.LENGTH_SHORT).show();
+//                    Log.e(TAG, "A-fuckboy Got: " + d.toString());
+//
+//                    if(d.getConfidence() > 50 && !d.toString().equals(currentState)) {
+//
+//                        String newActivity = d.toString().toUpperCase();
+//
+//                        Toast.makeText(getApplicationContext(), "Changing current activity to: " + newActivity, Toast.LENGTH_SHORT).show();
+//                        Log.e(TAG, "Changing current activity to: " + newActivity);
+//
+//                        previousState = currentState;
+//                        currentState = newActivity;
+//
+//                        for(Recipe r : EditRecipesFragment.mRecipeList) {
+//                            if(r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
+//                                String action = r.getDoList().get(0);
+//
+//                                Toast.makeText(getApplicationContext(), "Found matching recipe. Performing action: " + action, Toast.LENGTH_SHORT).show();
+//                                Log.e(TAG, "Found matching recipe. Performing action: " + action);
+//
+//                                // dropPinHereBrah();
+//                            }
+//                        }
+//                    }
+//                }
+//
+//            }
         }
     }
 }

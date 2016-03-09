@@ -34,6 +34,8 @@ public final class Constants {
      */
     public static final long DETECTION_INTERVAL_IN_MILLISECONDS = 0;
 
+
+
     /**
      * List of DetectedActivity types that we monitor in this sample.
      */

@@ -184,7 +184,6 @@ public class EditRecipesFragment extends Fragment {
         });
         final EditRecipesFragment instance = this;
         btnSubmit.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 ListView listIfView = (ListView) getView().findViewById(R.id.ifList);
