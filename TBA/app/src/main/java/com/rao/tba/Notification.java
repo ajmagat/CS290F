@@ -2,6 +2,8 @@ package com.rao.tba;
 
 import android.location.Location;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +28,18 @@ public class Notification {
     public Notification(String serializedNotification, String id) {
         List<String> partsList = new ArrayList<>(Arrays.asList(serializedNotification.split("!")));
         mType = partsList.get(0);
-
+        DateFormat sdff = new SimpleDateFormat("MMdd_HHmm");
+        try {
+            mDate = sdff.parse(partsList.get(1));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        mLocation = null;
+        if(mType.equals("Drop Pin")){
+            Location loc = new Location("");
+            loc.setLatitude(Double.parseDouble(partsList.get(2)));
+            loc.setLongitude(Double.parseDouble(partsList.get(3)));
+        }
     }
 
     /**
@@ -39,6 +52,8 @@ public class Notification {
 
     public String toString() {
         String timeStamp = new SimpleDateFormat("MMdd_HHmm").format(mDate);
-        return mType + "!" + timeStamp + "!" + mLocation.toString();
+        System.out.println("In toString for notification");
+        System.out.println(mType + "!" + timeStamp + "!" + mLocation.getLatitude() + "!" + mLocation.getLongitude());
+        return mType + "!" + timeStamp + "!" + mLocation.getLatitude() + "!" + mLocation.getLongitude();
     }
 }

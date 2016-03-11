@@ -22,6 +22,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;

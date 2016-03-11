@@ -40,7 +40,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, LocationListener {
+public class MainActivity extends AppCompatActivity implements NotificationsFragment.OnListFragmentInteractionListener, RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, LocationListener {
     protected static final String TAG = "MainActivity";
 
 
@@ -308,6 +308,11 @@ public class MainActivity extends AppCompatActivity implements RecipeFragment.On
      * activities.
      */
     protected void updateDetectedActivitiesList(ArrayList<DetectedActivity> detectedActivities) {
+    }
+
+    @Override
+    public void onListFragmentInteraction(Notification item, int pos, NotificationListAdapter adapter, List<Notification> values) {
+
     }
 
     /**
