@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -234,6 +235,13 @@ public class TransitionIntentService extends IntentService implements Connection
                                         Log.e(TAG, "Creating notification.");
                                         Location notifLoc = getLocation();
                                         not = new Notification(action, notifLoc);
+                                    }
+
+                                    else if (action.equals("Silence Phone")) {
+                                        AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+                                        audio.setRingerMode(0);
+
+                                        not = new Notification(action);
                                     }
 
                                     try {

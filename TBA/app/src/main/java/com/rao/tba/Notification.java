@@ -7,7 +7,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -18,6 +17,11 @@ public class Notification {
     private String mType;
     private Location mLocation;
     private Date mDate;
+
+    public Notification(String type) {
+        mType = type;
+        mDate = new Date();
+    }
 
     public Notification(String type, Location loc) {
         mType = type;

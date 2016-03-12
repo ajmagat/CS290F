@@ -28,6 +28,7 @@
 
     <string-array name="do_array">
         <item>Drop Pin</item>
+        <item>Silence Phone</item>
     </string-array>
 
     <!-- TODO: Remove or change this placeholder text -->
