@@ -5,12 +5,6 @@ import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.widget.Spinner;
-
-import com.rao.tba.EditRecipesFragment;
-import com.rao.tba.NotificationsFragment;
-import com.rao.tba.Recipe;
-import com.rao.tba.RecipeFragment;
 
 import org.json.JSONObject;
 
@@ -52,6 +46,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
                 String value = (String) jsonNotificationObject.get(key);
                 notificationList.add(new Notification(value, key));
             }
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }

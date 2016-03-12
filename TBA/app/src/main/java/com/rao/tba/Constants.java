@@ -61,13 +61,13 @@ public final class Constants {
             case DetectedActivity.ON_BICYCLE:
                 return "Biking";
             case DetectedActivity.ON_FOOT:
-                return "on foot";
+                return "Walking"; // For testing purposes, we are saying "walking" and "on foot" are the same
             case DetectedActivity.RUNNING:
                 return "Running";
             case DetectedActivity.STILL:
                 return "Still";
             case DetectedActivity.TILTING:
-                return "Tilting";
+                return "Walking"; // For testing purposes, we are saying "walking" and "tilting" are the same
             case DetectedActivity.UNKNOWN:
                 return "Unknown";
             case DetectedActivity.WALKING:

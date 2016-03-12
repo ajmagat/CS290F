@@ -1,31 +1,29 @@
 package com.rao.tba;
 
+import android.annotation.TargetApi;
 import android.app.IntentService;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +59,7 @@ public class TransitionIntentService extends IntentService implements Connection
      * @brief Callback from Google FusedLocationAPI for when location is determined via GPS
      * @param location
      */
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
     public void onLocationChanged(Location location) {
         Log.e(TAG, "In here?");
@@ -83,6 +82,8 @@ public class TransitionIntentService extends IntentService implements Connection
         Log.e(TAG, "IN HERE");
 
     }
+
+
 
     /**
      * @brief Callback from Google API for when connection has failed
@@ -141,6 +142,19 @@ public class TransitionIntentService extends IntentService implements Connection
         locRequest.setInterval(5000);
         locRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
+//        // Here, thisActivity is the current activity
+//        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+//                Manifest.permission.ACCESS_FINE_LOCATION)
+//                != PackageManager.PERMISSION_GRANTED) {
+//
+//                // No explanation needed, we can request the permission.
+//
+//                ActivityCompat.requestPermissions((Activity)getApplicationContext(),
+//                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+//                        MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+//
+//        }
+
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApi, locRequest, this);
 
@@ -188,15 +202,15 @@ public class TransitionIntentService extends IntentService implements Connection
 
                     // Get type of activity in string
                     String ourType = Constants.getActivityString(getApplicationContext(), d.getType());
-                    Log.e(TAG, "Our type: " + ourType);
+                    Log.e(TAG, "Our type: " + ourType + " with confidence: " + d.getConfidence());
 
                     // Check if user is moving
                     if(d.getConfidence() > 70 && !ourType.equals("Still")) {
-
+                        // TODO: uhh do we need this here still?
                     }
 
                     // Check if the user has changed states
-                    if(d.getConfidence() > 70 && !ourType.equals(currentState)) {
+                    if(d.getConfidence() > 50 && !ourType.equals(currentState)) {
                         previousState = currentState;
                         currentState = ourType;
 
@@ -204,32 +218,34 @@ public class TransitionIntentService extends IntentService implements Connection
                         Log.e(TAG, "currentState: " + currentState);
 
                         // Check if this change is part of a recipe
-                        for(Recipe r : EditRecipesFragment.mRecipeList) {
-                            if(r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
-                                String action = r.getDoList().get(0);
+                        if(EditRecipesFragment.mRecipeList != null) {
+                            for (Recipe r : EditRecipesFragment.mRecipeList) {
+                                if (r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
+                                    String action = r.getDoList().get(0);
 
+                                    Log.e(TAG, "Found matching recipe. Performing action: " + action);
 
-                                Log.e(TAG, "Found matching recipe. Performing action: " + action);
+                                    // Create null notification
+                                    Notification not = null;
 
-                                // Create null notification
-                                Notification not = null;
-
-                                // Check what this action was
-                                if (action.equals("Drop Pin")) {
-                                    // If drop pin, get location and create notification
-                                    Location notifLoc = getLocation();
-                                    not = new Notification(action, notifLoc);
-                                }
-
-                                try {
-                                    if (not != null) {
-                                        // Add notification to shared preferences
-                                        jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
-                                        editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
-                                        editor.commit();
+                                    // Check what this action was
+                                    if (action.equals("Drop Pin")) {
+                                        // If drop pin, get location and create notification
+                                        Log.e(TAG, "Creating notification.");
+                                        Location notifLoc = getLocation();
+                                        not = new Notification(action, notifLoc);
                                     }
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+
+                                    try {
+                                        if (not != null) {
+                                            // Add notification to shared preferences
+                                            jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
+                                            editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
+                                            editor.commit();
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         }
