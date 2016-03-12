@@ -1,14 +1,15 @@
 package com.rao.tba;
 
 import android.content.Context;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.rao.tba.NotificationsFragment.OnListFragmentInteractionListener;
+
 import java.util.List;
 
 /**
@@ -39,7 +40,7 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
         holder.mItem = mValues.get(position);
 
         if (holder.mItem.getType().equals("Drop Pin")) {
-            holder.mButton = (Button) holder.mView.findViewById(R.id.map_button);
+            holder.mButton = (FloatingActionButton) holder.mView.findViewById(R.id.map_button);
         }
 
         holder.mIdView.setText(holder.mItem.describe());
@@ -64,7 +65,7 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
         public final TextView mIdView;
-        public Button mButton;
+        public FloatingActionButton mButton;
         public Notification mItem;
 
         public ViewHolder(View view) {
