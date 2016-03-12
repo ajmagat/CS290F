@@ -48,6 +48,11 @@ public class TransitionIntentService extends IntentService implements Connection
     public static Object sNotificationLock = new Object();
     public static List<String> sNotificationList = new ArrayList<>();
 
+    // Use this to test a notification
+    // Set to 0 to receive 1 notification
+    // Set to anything else to not receive the test notification
+    public static int TEST_INT = 1;
+
     /**
      * @brief Default constructor
      */
@@ -84,8 +89,6 @@ public class TransitionIntentService extends IntentService implements Connection
 
     }
 
-
-
     /**
      * @brief Callback from Google API for when connection has failed
      * @param result
@@ -109,7 +112,10 @@ public class TransitionIntentService extends IntentService implements Connection
 
     }
 
-
+    /**
+     * @brief Used to get location using FusedLocationApi
+     * @return current location
+     */
     private Location getLocation() {
         // Check if we need to set up Google API
         if (mGoogleApi == null) {
@@ -189,11 +195,12 @@ public class TransitionIntentService extends IntentService implements Connection
             {
                 if ( d.getConfidence() > 30 )
                 {
-                    SharedPreferences prefs = null;
+                    // Get shared preferences
+                    SharedPreferences prefs;
                     SharedPreferences.Editor editor = null;
                     JSONObject jsonObject = null;
                     try {
-                        prefs = getApplicationContext().getSharedPreferences("NotificationsStore", Context.MODE_PRIVATE);
+                        prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
                         editor = prefs.edit();
                         String jsonString = prefs.getString(NOTIFICATION_MAP_NAME, (new JSONObject()).toString());
                         jsonObject = new JSONObject(jsonString);
@@ -205,10 +212,33 @@ public class TransitionIntentService extends IntentService implements Connection
                     String ourType = Constants.getActivityString(getApplicationContext(), d.getType());
                     Log.e(TAG, "Our type: " + ourType + " with confidence: " + d.getConfidence());
 
-                    // Check if user is moving
-                    if(d.getConfidence() > 70 && !ourType.equals("Still")) {
-                        // TODO: uhh do we need this here still?
+                    // TEST FOR NOTIFICATION
+                    if(d.getConfidence() > 70) {
+                        if (TEST_INT == 0) {
+                            try {
+                                TEST_INT = 1;
+                                Log.e(TAG, "Creating notification. 2 " + Integer.toString(TEST_INT));
+                                Location notifLoc = getLocation();
+                                if (notifLoc == null) {
+                                    notifLoc = new Location("");
+                                    notifLoc.setLatitude(34.416655);
+                                    notifLoc.setLongitude(-119.845260);
+                                }
+                                Notification not = new Notification("Drop Pin", notifLoc);
+
+                                // Add notification to shared preferences
+                                jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
+                                editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
+                                editor.commit();
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
+
+
+                    Log.e(TAG, "currentState: " + currentState);
 
                     // Check if the user has changed states
                     if(d.getConfidence() > 50 && !ourType.equals(currentState)) {
@@ -232,8 +262,9 @@ public class TransitionIntentService extends IntentService implements Connection
                                     // Check what this action was
                                     if (action.equals("Drop Pin")) {
                                         // If drop pin, get location and create notification
-                                        Log.e(TAG, "Creating notification.");
+                                        Log.e(TAG, "Creating notification");
                                         Location notifLoc = getLocation();
+
                                         not = new Notification(action, notifLoc);
                                     }
 

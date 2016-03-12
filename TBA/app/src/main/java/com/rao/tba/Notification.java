@@ -39,13 +39,16 @@ public class Notification {
             e.printStackTrace();
         }
         mLocation = null;
-        if(mType.equals("Drop Pin")){
-            Location loc = new Location("");
-            loc.setLatitude(Double.parseDouble(partsList.get(2)));
-            loc.setLongitude(Double.parseDouble(partsList.get(3)));
+        if(mType.equals("Drop Pin")) {
+            mLocation = new Location("");
+            mLocation.setLatitude(Double.parseDouble(partsList.get(2)));
+            mLocation.setLongitude(Double.parseDouble(partsList.get(3)));
         }
     }
 
+    public Location getLocation() {
+        return mLocation;
+    }
     /**
      * @brief Return string describing this notifications
      * @return descriptive string

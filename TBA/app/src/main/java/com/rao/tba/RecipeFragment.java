@@ -124,7 +124,7 @@ public class RecipeFragment extends Fragment {
      */
     public void updateRecipeList() {
         try {
-            SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
+            SharedPreferences prefs = getActivity().getApplication().getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
 
             JSONObject jsonObject = new JSONObject();

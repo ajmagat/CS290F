@@ -24,7 +24,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         ArrayList<Recipe> recipeList = new ArrayList<>();
         ArrayList<Notification> notificationList = new ArrayList<>();
 
-        SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
 
         String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
         String jsonNotificationString = prefs.getString("NotificationMap", (new JSONObject()).toString());
@@ -40,6 +40,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
             JSONObject jsonNotificationObject = new JSONObject(jsonNotificationString);
             Iterator<String> nKeysItr = jsonNotificationObject.keys();
+
+            System.out.println("YO THIS MAP: " + jsonNotificationString);
 
             while (nKeysItr.hasNext()) {
                 String key = nKeysItr.next();

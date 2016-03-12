@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 try {
-                    SharedPreferences prefs = getApplicationContext().getSharedPreferences("RecipeStore", Context.MODE_PRIVATE);
+                    SharedPreferences prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
                     String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
                     JSONObject jsonObject = new JSONObject(jsonString);
                     jsonObject.remove(dialogItem.getName());
@@ -346,7 +346,13 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
 
     @Override
     public void onListFragmentInteraction(Notification item, int pos, NotificationListAdapter adapter, List<Notification> values) {
-
+        Intent mapsIntent = new Intent(this, MapsActivity.class);
+        Bundle b = new Bundle();
+        Location temp = item.getLocation();
+        b.putDouble("Latitude", temp.getLatitude());
+        b.putDouble("Longitude", temp.getLongitude());
+        mapsIntent.putExtras(b);
+        startActivity(mapsIntent);
     }
 
     /**
