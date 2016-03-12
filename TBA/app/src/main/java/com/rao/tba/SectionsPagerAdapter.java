@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -18,12 +19,13 @@ import java.util.Iterator;
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     private Fragment[] fragmentArray;
+    private List<Notification> mNotificationList;
     public SectionsPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
         fragmentArray = new Fragment[3];
         ArrayList<Recipe> recipeList = new ArrayList<>();
         ArrayList<Notification> notificationList = new ArrayList<>();
-
+        mNotificationList = notificationList;
         SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
 
         String jsonString = prefs.getString("RecipeMap", (new JSONObject()).toString());
@@ -46,10 +48,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
             while (nKeysItr.hasNext()) {
                 String key = nKeysItr.next();
                 String value = (String) jsonNotificationObject.get(key);
-                notificationList.add(new Notification(value, key));
+                notificationList.add(0, new Notification(value, key));
             }
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -89,5 +89,13 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
                 return "SECTION 3";
         }
         return null;
+    }
+
+    /**
+     * @brief Accessor for mNotificationList
+     * @return mNotificationList
+     */
+    public List<Notification> getNotificationList() {
+        return mNotificationList;
     }
 }

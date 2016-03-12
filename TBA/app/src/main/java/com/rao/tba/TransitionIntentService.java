@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -38,20 +39,20 @@ public class TransitionIntentService extends IntentService implements Connection
     private static String previousState = "Unknown";
     private static String currentState = "Unknown";
 
+    // Keep track of location
+    private static Location sPreviousLocation = null;
+    private static Location sCurrentLocation = null;
+
     // Google API for location service
     private GoogleApiClient mGoogleApi;
 
     // Handler for looping until location is returned
     private Handler mLocationHandler;
 
-    // Going to need theses later to update notification list
-    public static Object sNotificationLock = new Object();
-    public static List<String> sNotificationList = new ArrayList<>();
-
     // Use this to test a notification
     // Set to 0 to receive 1 notification
     // Set to anything else to not receive the test notification
-    public static int TEST_INT = 1;
+    public static int TEST_INT = 0;
 
     /**
      * @brief Default constructor
@@ -85,8 +86,7 @@ public class TransitionIntentService extends IntentService implements Connection
         // applications that do not require a fine-grained location and that do not need location
         // updates. Gets the best and most recent location currently available, which may be null
         // in rare cases when a location is not available.
-        Log.e(TAG, "IN HERE");
-
+        Log.i(TAG, "GoogleAPI successfully connected");
     }
 
     /**
@@ -179,118 +179,154 @@ public class TransitionIntentService extends IntentService implements Connection
      */
     @Override
     protected void onHandleIntent(Intent intent) {
-
         // Check to see if the intent has any activity recognition results
-        if (ActivityRecognitionResult.hasResult(intent)) {
-            // If there are results, extract them
-            ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
+        // Return if there are none
+        if (! ActivityRecognitionResult.hasResult(intent)) {
+            return;
+        }
 
-            // Get the list of the probable activities associated with the current state of the
-            // device. Each activity is associated with a confidence level, which is an int between
-            // 0 and 100.
-            ArrayList<DetectedActivity> detectedActivities = (ArrayList) result.getProbableActivities();
+        // If there are results, extract them
+        ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
 
-            // Loop through every activity
-            for (DetectedActivity d : detectedActivities )
+        // Get the list of the probable activities associated with the current state of the
+        // device. Each activity is associated with a confidence level, which is an int between
+        // 0 and 100.
+        ArrayList<DetectedActivity> detectedActivities = (ArrayList) result.getProbableActivities();
+
+        // Loop through every activity
+        for (DetectedActivity d : detectedActivities )
+        {
+            // Process if the detected activity has confidence over 70
+            if ( d.getConfidence() > 70 )
             {
-                if ( d.getConfidence() > 30 )
-                {
-                    // Get shared preferences
-                    SharedPreferences prefs;
-                    SharedPreferences.Editor editor = null;
-                    JSONObject jsonObject = null;
-                    try {
-                        prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
-                        editor = prefs.edit();
-                        String jsonString = prefs.getString(NOTIFICATION_MAP_NAME, (new JSONObject()).toString());
-                        jsonObject = new JSONObject(jsonString);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
 
-                    // Get type of activity in string
-                    String ourType = Constants.getActivityString(getApplicationContext(), d.getType());
-                    Log.e(TAG, "Our type: " + ourType + " with confidence: " + d.getConfidence());
+                // Get type of activity in string form
+                String detectedType = Constants.getActivityString(getApplicationContext(), d.getType());
+                Log.i(TAG, "Detected type: " + detectedType + " with confidence: " + d.getConfidence());
 
-                    // TEST FOR NOTIFICATION
-                    if(d.getConfidence() > 70) {
-                        if (TEST_INT == 0) {
-                            try {
-                                TEST_INT = 1;
-                                Log.e(TAG, "Creating notification. 2 " + Integer.toString(TEST_INT));
-                                Location notifLoc = getLocation();
-                                if (notifLoc == null) {
-                                    notifLoc = new Location("");
-                                    notifLoc.setLatitude(34.416655);
-                                    notifLoc.setLongitude(-119.845260);
-                                }
-                                Notification not = new Notification("Drop Pin", notifLoc);
 
-                                // Add notification to shared preferences
-                                jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
-                                editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
-                                editor.commit();
+                // TEST FOR NOTIFICATION
+                testNotification();
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                Log.i(TAG, "currentState: " + currentState);
+
+                // Check if the detected activity is for movement
+                if (!detectedType.equals("Still")) {
+                    // Check for location
+                    sPreviousLocation = sCurrentLocation;
+                    sCurrentLocation = getLocation();
+
+                    // Check if the distance between the current and last position is enough to signify movement
+                    if (sPreviousLocation != null && sCurrentLocation != null) {
+                        float distance = sCurrentLocation.distanceTo(sPreviousLocation);
+                        if (distance < Constants.MINIMUM_CHANGE_DISTANCE) {
+                            detectedType = "Still";
                         }
                     }
+                }
 
+                // Check if the user has changed states
+                if(!detectedType.equals(currentState)) {
+                    previousState = currentState;
+                    currentState = detectedType;
 
+                    Log.e(TAG, "previousState: " + previousState);
                     Log.e(TAG, "currentState: " + currentState);
 
-                    // Check if the user has changed states
-                    if(d.getConfidence() > 50 && !ourType.equals(currentState)) {
-                        previousState = currentState;
-                        currentState = ourType;
-
-                        Log.e(TAG, "previousState: " + previousState);
-                        Log.e(TAG, "currentState: " + currentState);
-
-                        // Check if this change is part of a recipe
-                        if(EditRecipesFragment.mRecipeList != null) {
-                            for (Recipe r : EditRecipesFragment.mRecipeList) {
-                                if (r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
-                                    String action = r.getDoList().get(0);
-
-                                    Log.e(TAG, "Found matching recipe. Performing action: " + action);
-
-                                    // Create null notification
-                                    Notification not = null;
-
-                                    // Check what this action was
-                                    if (action.equals("Drop Pin")) {
-                                        // If drop pin, get location and create notification
-                                        Log.e(TAG, "Creating notification");
-                                        Location notifLoc = getLocation();
-
-                                        not = new Notification(action, notifLoc);
-                                    }
-
-                                    else if (action.equals("Silence Phone")) {
-                                        AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-                                        audio.setRingerMode(0);
-
-                                        not = new Notification(action);
-                                    }
-
-                                    try {
-                                        if (not != null) {
-                                            // Add notification to shared preferences
-                                            jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
-                                            editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
-                                            editor.commit();
-                                        }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                }
+                    // Check if this change is part of a recipe
+                    if(EditRecipesFragment.mRecipeList != null) {
+                        for (Recipe r : EditRecipesFragment.mRecipeList) {
+                            if (r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
+                                createNotification(r);
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * @brief Method to handle creation of notification
+     */
+    private void createNotification(Recipe triggered) {
+        try {
+            // Get shared preferences
+            SharedPreferences prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            String jsonString = prefs.getString(NOTIFICATION_MAP_NAME, (new JSONObject()).toString());
+            JSONObject jsonObject = new JSONObject(jsonString);
+
+            String action = triggered.getDoList().get(0);
+            Log.i(TAG, "Found matching recipe. Performing action: " + action);
+
+
+            // Create null notification
+            Notification not = null;
+
+            // Check what this action was
+            if (action.equals("Drop Pin")) {
+                // If drop pin, get location and create notification
+                Log.e(TAG, "Creating notification");
+                Location notifLoc = getLocation();
+
+                not = new Notification(action, notifLoc);
+            }
+
+            else if (action.equals("Silence Phone")) {
+                AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+                audio.setRingerMode(0);
+
+                not = new Notification(action);
+            }
+
+            if (not != null) {
+                // Add notification to shared preferences
+                jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
+                editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
+                editor.commit();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @brief Method to create test notification
+     */
+    private void testNotification() {
+        try {
+            if (TEST_INT != 0) {
+                return;
+            }
+            TEST_INT = 1;
+            Log.w(TAG, "About to do test notification for real");
+            SharedPreferences prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            String jsonString = prefs.getString(NOTIFICATION_MAP_NAME, (new JSONObject()).toString());
+            JSONObject jsonObject = new JSONObject(jsonString);
+
+            Location notifLoc = getLocation();
+            if (notifLoc == null) {
+                notifLoc = new Location("");
+                notifLoc.setLatitude(34.416655);
+                notifLoc.setLongitude(-119.845260);
+            }
+
+            Notification not = new Notification("Drop Pin", notifLoc);
+
+            // Add notification to shared preferences
+            jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
+            editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
+            editor.commit();
+            Log.w(TAG, "Just added test to shared preferences");
+            Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
+            localIntent.putExtra("New Notification", not.toString());
+            LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+            Log.w(TAG, "Just broadcasted");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

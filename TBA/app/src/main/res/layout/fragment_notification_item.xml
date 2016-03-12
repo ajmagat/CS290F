@@ -1,13 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:weightSum="1"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/notification_item_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:textAppearance="?attr/textAppearanceListItem" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="85dp"
+        android:layout_gravity="center_horizontal">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/map_button"
+            android:layout_width="109dp"
+            android:layout_height="60dp"
+            android:src="@android:drawable/ic_dialog_map"
+            android:layout_weight="0.01"
+            android:layout_gravity="right"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:id="@+id/notification_item_id"
+            android:layout_width="107dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:layout_weight="0.02"
+            android:layout_marginLeft="@dimen/text_margin"
+            android:layout_marginRight="@dimen/text_margin"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true" />
+    </RelativeLayout>
 
 </LinearLayout>

@@ -29,41 +29,24 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
-import com.google.android.gms.location.DetectedActivity;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements NotificationsFragment.OnListFragmentInteractionListener, RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, LocationListener {
+public class MainActivity extends AppCompatActivity implements NotificationsFragment.OnListFragmentInteractionListener, RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
     protected static final String TAG = "MainActivity";
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 9;
-
-
-    private String previousState = "Unknown";
-    private String currentState = "Unknown";
 
     private ViewPager mViewPager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private PendingIntent mPendingIntent;
     private LocationRequest mLocationRequest;
     private PendingIntent mLocationIntent;
-    private NotificationListAdapter mAdapter;
 
     protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
     protected GoogleApiClient mGoogleApiClient;
-
-    @Override
-    public void onLocationChanged(Location location) {
-        Log.e(TAG, "In here?");
-
-        Log.w(TAG, location.toString());
-
-        //mWhat.getLooper().quitSafely();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,10 +82,8 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
                     setTitle("Notifications");
                 } else if (position == 1) {
                     setTitle("My Recipes");
-                    RecipeFragment temp = (RecipeFragment) allFrags.get(1);
                 } else if (position == 2) {
                     setTitle("Edit Recipe");
-                    EditRecipesFragment temp = (EditRecipesFragment) allFrags.get(2);
                 }
             }
 
@@ -112,7 +93,6 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
         });
 
         // Check permissions
-
 
         // Create Google API Client
         buildGoogleApiClient();
@@ -157,7 +137,6 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(ActivityRecognition.API)
-             //   .addApi(LocationServices.API)
                 .build();
 
         if (mPendingIntent == null) {
@@ -176,20 +155,6 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
             mLocationIntent = PendingIntent.getService(this, 0, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
     }
-
-
-    public void showMap(View v) {
-
-        Intent mapsIntent = new Intent(this, MapsActivity.class);
-        startActivity(mapsIntent);
-
-    }
-
-    public void startAccelerometer(View view) {
-        Intent accelIntent = new Intent(this, AccelerometerActivity.class);
-        startActivity(accelIntent);
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -302,9 +267,9 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
     @Override
     protected void onResume() {
         super.onResume();
+
         // Register the broadcast receiver that informs this activity of the DetectedActivity
         // object broadcast sent by the intent service.
-
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.BROADCAST_ACTION));
     }
 
@@ -315,7 +280,6 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
     public void onConnected(Bundle connectionHint) {
         Log.i(TAG, "Connected to GoogleApiClient");
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.DETECTION_INTERVAL_IN_MILLISECONDS, mPendingIntent);
-     //   LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
     @Override
@@ -336,23 +300,25 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
 
     }
 
-    /**
-     * Processes the list of freshly detected activities. Asks the adapter to update its list of
-     * DetectedActivities with new {@code DetectedActivity} objects reflecting the latest detected
-     * activities.
-     */
-    protected void updateDetectedActivitiesList(ArrayList<DetectedActivity> detectedActivities) {
-    }
-
     @Override
     public void onListFragmentInteraction(Notification item, int pos, NotificationListAdapter adapter, List<Notification> values) {
-        Intent mapsIntent = new Intent(this, MapsActivity.class);
-        Bundle b = new Bundle();
-        Location temp = item.getLocation();
-        b.putDouble("Latitude", temp.getLatitude());
-        b.putDouble("Longitude", temp.getLongitude());
-        mapsIntent.putExtras(b);
-        startActivity(mapsIntent);
+        // Check the type of notification
+        if (item.getType().equals("Drop Pin")) {
+            // Create an intent for the map
+            Intent mapsIntent = new Intent(this, MapsActivity.class);
+
+            // Create a bundle to hold any extra parameters
+            Bundle b = new Bundle();
+
+            // Store location information in bundle
+            Location temp = item.getLocation();
+            b.putDouble("Latitude", temp.getLatitude());
+            b.putDouble("Longitude", temp.getLongitude());
+            mapsIntent.putExtras(b);
+
+            // Start map activity
+            startActivity(mapsIntent);
+        }
     }
 
     /**
@@ -364,48 +330,18 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
 
         @Override
         public void onReceive(Context context, Intent intent) {
-//            Log.e("A-Fresh", "Got something");
-//            ArrayList<DetectedActivity> updatedActivities =
-//                    intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
-//
-//            Location last = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-//
-//            if (last == null) {
-//                Log.e("sigh", "sigh");
-//            } else {
-//                Log.w("a-fresh", last.toString());
-//            }
-//            for (DetectedActivity d : updatedActivities) {
-//
-//                Log.e(TAG, "QUEEEEF");
-//                if (d.getConfidence() > 0) {
-//                    Toast.makeText(getApplicationContext(), "A-fuckboy Got: " + d.toString() + " with confidence " + Integer.toString(d.getConfidence()), Toast.LENGTH_SHORT).show();
-//                    Log.e(TAG, "A-fuckboy Got: " + d.toString());
-//
-//                    if(d.getConfidence() > 50 && !d.toString().equals(currentState)) {
-//
-//                        String newActivity = d.toString().toUpperCase();
-//
-//                        Toast.makeText(getApplicationContext(), "Changing current activity to: " + newActivity, Toast.LENGTH_SHORT).show();
-//                        Log.e(TAG, "Changing current activity to: " + newActivity);
-//
-//                        previousState = currentState;
-//                        currentState = newActivity;
-//
-//                        for(Recipe r : EditRecipesFragment.mRecipeList) {
-//                            if(r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
-//                                String action = r.getDoList().get(0);
-//
-//                                Toast.makeText(getApplicationContext(), "Found matching recipe. Performing action: " + action, Toast.LENGTH_SHORT).show();
-//                                Log.e(TAG, "Found matching recipe. Performing action: " + action);
-//
-//                                // dropPinHereBrah();
-//                            }
-//                        }
-//                    }
-//                }
-//
-//            }
+            Log.e(TAG, "ActivityDetectionBroadcastReceiver received broadcast");
+
+            // Get notification information
+            String notificationString = intent.getStringExtra("New Notification");
+
+            // Add notification to list of notifications
+            List<Notification> tempList = mSectionsPagerAdapter.getNotificationList();
+            Notification newNotification = new Notification(notificationString, Integer.toString(tempList.size()));
+            tempList.add(0, newNotification);
+
+            // Signal to NotificationListAdapter that the list has changed
+            ((NotificationsFragment) getSupportFragmentManager().getFragments().get(0)).getNotificationsAdapter().notifyDataSetChanged();
         }
     }
 }

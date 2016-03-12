@@ -67,6 +67,13 @@ public class NotificationsFragment extends Fragment {
     }
 
 
+    /**
+     * @brief Accessor for mNotificationsAdapter
+     * @return mNotificationsAdapter
+     */
+    public NotificationListAdapter getNotificationsAdapter() {
+        return mNotificationsAdapter;
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);

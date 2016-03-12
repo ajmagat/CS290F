@@ -34,7 +34,8 @@ public final class Constants {
      */
     public static final long DETECTION_INTERVAL_IN_MILLISECONDS = 0;
 
-
+    // Minimum distance needed to result in a change from Still to a movement activity
+    public static final float MINIMUM_CHANGE_DISTANCE = 1;
 
     /**
      * List of DetectedActivity types that we monitor in this sample.

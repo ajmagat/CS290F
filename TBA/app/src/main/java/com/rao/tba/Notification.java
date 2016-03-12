@@ -46,6 +46,14 @@ public class Notification {
         }
     }
 
+    /**
+     * @brief Accessor for mType
+     * @return mType
+     */
+    public String getType() {
+        return mType;
+    }
+
     public Location getLocation() {
         return mLocation;
     }
@@ -54,7 +62,8 @@ public class Notification {
      * @return descriptive string
      */
     public String describe() {
-        return mType;
+        String timeStamp = new SimpleDateFormat("MM/dd HH:mm").format(mDate);
+        return timeStamp + " : " + mType;
     }
 
     public String toString() {

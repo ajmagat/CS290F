@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.rao.tba.NotificationsFragment.OnListFragmentInteractionListener;
@@ -36,6 +37,11 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
+
+        if (holder.mItem.getType().equals("Drop Pin")) {
+            holder.mButton = (Button) holder.mView.findViewById(R.id.map_button);
+        }
+
         holder.mIdView.setText(holder.mItem.describe());
         final NotificationListAdapter temp = this;
         holder.mView.setOnClickListener(new View.OnClickListener() {
@@ -58,7 +64,7 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
         public final TextView mIdView;
-
+        public Button mButton;
         public Notification mItem;
 
         public ViewHolder(View view) {
