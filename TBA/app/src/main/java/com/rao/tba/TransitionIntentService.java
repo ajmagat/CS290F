@@ -52,7 +52,7 @@ public class TransitionIntentService extends IntentService implements Connection
     // Use this to test a notification
     // Set to 0 to receive 1 notification
     // Set to anything else to not receive the test notification
-    public static int TEST_INT = 0;
+    public static int TEST_INT = 1;
 
     /**
      * @brief Default constructor
