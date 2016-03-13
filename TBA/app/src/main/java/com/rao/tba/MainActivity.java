@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -334,14 +335,20 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
 
             // Get notification information
             String notificationString = intent.getStringExtra("New Notification");
+            String currentState = intent.getStringExtra("Current State");
+            String previousState = intent.getStringExtra("Previous State");
+            boolean showNotification = intent.getBooleanExtra("notif", false);
+            Toast.makeText(getApplicationContext(), "Previous: " + previousState + "\nCurrent: " + currentState, Toast.LENGTH_SHORT).show();
 
-            // Add notification to list of notifications
-            List<Notification> tempList = mSectionsPagerAdapter.getNotificationList();
-            Notification newNotification = new Notification(notificationString, Integer.toString(tempList.size()));
-            tempList.add(0, newNotification);
+            if ( showNotification ) {
+                // Add notification to list of notifications
+                List<Notification> tempList = mSectionsPagerAdapter.getNotificationList();
+                Notification newNotification = new Notification(notificationString, Integer.toString(tempList.size()));
+                tempList.add(0, newNotification);
 
-            // Signal to NotificationListAdapter that the list has changed
-            ((NotificationsFragment) getSupportFragmentManager().getFragments().get(0)).getNotificationsAdapter().notifyDataSetChanged();
+                // Signal to NotificationListAdapter that the list has changed
+                ((NotificationsFragment) getSupportFragmentManager().getFragments().get(0)).getNotificationsAdapter().notifyDataSetChanged();
+            }
         }
     }
 }

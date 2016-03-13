@@ -21,6 +21,7 @@ public class Notification {
     public Notification(String type) {
         mType = type;
         mDate = new Date();
+        mLocation = new Location("");
     }
 
     public Notification(String type, Location loc) {
@@ -69,7 +70,6 @@ public class Notification {
     public String toString() {
         String timeStamp = new SimpleDateFormat("MMdd_HHmm").format(mDate);
         System.out.println("In toString for notification");
-        System.out.println(mType + "!" + timeStamp + "!" + mLocation.getLatitude() + "!" + mLocation.getLongitude());
         return mType + "!" + timeStamp + "!" + mLocation.getLatitude() + "!" + mLocation.getLongitude();
     }
 }

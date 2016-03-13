@@ -211,19 +211,26 @@ public class TransitionIntentService extends IntentService implements Connection
                 Log.i(TAG, "currentState: " + currentState);
 
                 // Check if the detected activity is for movement
-                if (!detectedType.equals("Still")) {
-                    // Check for location
-                    sPreviousLocation = sCurrentLocation;
-                    sCurrentLocation = getLocation();
+//                if (!detectedType.equals("Still")) {
+//                    // Check for location
+//                    sPreviousLocation = sCurrentLocation;
+//                    sCurrentLocation = getLocation();
+//
+//                    // Check if the distance between the current and last position is enough to signify movement
+//                    if (sPreviousLocation != null && sCurrentLocation != null) {
+//                        float distance = sCurrentLocation.distanceTo(sPreviousLocation);
+//                        if (distance < Constants.MINIMUM_CHANGE_DISTANCE) {
+//                            detectedType = "Still";
+//                        }
+//                    }
+//                }
 
-                    // Check if the distance between the current and last position is enough to signify movement
-                    if (sPreviousLocation != null && sCurrentLocation != null) {
-                        float distance = sCurrentLocation.distanceTo(sPreviousLocation);
-                        if (distance < Constants.MINIMUM_CHANGE_DISTANCE) {
-                            detectedType = "Still";
-                        }
-                    }
-                }
+                Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
+
+                localIntent.putExtra("Previous State", previousState);
+                localIntent.putExtra("Current State", currentState);
+                localIntent.putExtra("notif", false);
+
 
                 // Check if the user has changed states
                 if(!detectedType.equals(currentState)) {
@@ -237,11 +244,15 @@ public class TransitionIntentService extends IntentService implements Connection
                     if(EditRecipesFragment.mRecipeList != null) {
                         for (Recipe r : EditRecipesFragment.mRecipeList) {
                             if (r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
-                                createNotification(r);
+                                localIntent.putExtra("notif", true);
+                                Notification temp = createNotification(r);
+                                localIntent.putExtra("New Notification", temp.toString());
                             }
                         }
                     }
                 }
+
+                LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
             }
         }
     }
@@ -249,7 +260,7 @@ public class TransitionIntentService extends IntentService implements Connection
     /**
      * @brief Method to handle creation of notification
      */
-    private void createNotification(Recipe triggered) {
+    private Notification createNotification(Recipe triggered) {
         try {
             // Get shared preferences
             SharedPreferences prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
@@ -263,7 +274,7 @@ public class TransitionIntentService extends IntentService implements Connection
 
             // Create null notification
             Notification not = null;
-
+            System.out.println("Action is : " + action);
             // Check what this action was
             if (action.equals("Drop Pin")) {
                 // If drop pin, get location and create notification
@@ -271,9 +282,7 @@ public class TransitionIntentService extends IntentService implements Connection
                 Location notifLoc = getLocation();
 
                 not = new Notification(action, notifLoc);
-            }
-
-            else if (action.equals("Silence Phone")) {
+            } else if (action.equals("Silence Phone")) {
                 AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
                 audio.setRingerMode(0);
 
@@ -286,10 +295,11 @@ public class TransitionIntentService extends IntentService implements Connection
                 editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
                 editor.commit();
             }
-
+            return not;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     /**
