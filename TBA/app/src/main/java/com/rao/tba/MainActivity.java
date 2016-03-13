@@ -34,6 +34,7 @@ import com.google.android.gms.location.LocationRequest;
 
 import org.json.JSONObject;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NotificationsFragment.OnListFragmentInteractionListener, RecipeFragment.OnListFragmentInteractionListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
@@ -269,9 +270,31 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
     protected void onResume() {
         super.onResume();
 
+        refreshNotifications();
         // Register the broadcast receiver that informs this activity of the DetectedActivity
         // object broadcast sent by the intent service.
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.BROADCAST_ACTION));
+    }
+
+    public void refreshNotifications() {
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
+        String jsonNotificationString = prefs.getString("NotificationMap", (new JSONObject()).toString());
+        List<Notification> tempList = mSectionsPagerAdapter.getNotificationList();
+        try {
+            JSONObject jsonNotificationObject = new JSONObject(jsonNotificationString);
+            Iterator<String> nKeysItr = jsonNotificationObject.keys();
+
+            System.out.println("YO THIS MAP: " + jsonNotificationString);
+
+            tempList.clear();
+            while (nKeysItr.hasNext()) {
+                String key = nKeysItr.next();
+                String value = (String) jsonNotificationObject.get(key);
+                tempList.add(0, new Notification(value, key));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
