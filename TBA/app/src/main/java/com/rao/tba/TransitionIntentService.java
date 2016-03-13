@@ -211,19 +211,19 @@ public class TransitionIntentService extends IntentService implements Connection
                 Log.i(TAG, "currentState: " + currentState);
 
                 // Check if the detected activity is for movement
-//                if (!detectedType.equals("Still")) {
-//                    // Check for location
-//                    sPreviousLocation = sCurrentLocation;
-//                    sCurrentLocation = getLocation();
-//
-//                    // Check if the distance between the current and last position is enough to signify movement
-//                    if (sPreviousLocation != null && sCurrentLocation != null) {
-//                        float distance = sCurrentLocation.distanceTo(sPreviousLocation);
-//                        if (distance < Constants.MINIMUM_CHANGE_DISTANCE) {
-//                            detectedType = "Still";
-//                        }
-//                    }
-//                }
+                if (!detectedType.equals("Still")) {
+                    // Check for location
+                    sPreviousLocation = sCurrentLocation;
+                    sCurrentLocation = getLocation();
+
+                    // Check if the distance between the current and last position is enough to signify movement
+                    if (sPreviousLocation != null && sCurrentLocation != null) {
+                        float distance = sCurrentLocation.distanceTo(sPreviousLocation);
+                        if (distance < Constants.MINIMUM_CHANGE_DISTANCE) {
+                            detectedType = "Still";
+                        }
+                    }
+                }
 
                 Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
 
