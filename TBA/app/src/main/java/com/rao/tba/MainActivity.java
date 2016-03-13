@@ -271,11 +271,19 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
         super.onResume();
 
         refreshNotifications();
+
+        if ( ! mGoogleApiClient.isConnected() ) {
+            mGoogleApiClient.connect();
+        }
+
         // Register the broadcast receiver that informs this activity of the DetectedActivity
         // object broadcast sent by the intent service.
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.BROADCAST_ACTION));
     }
 
+    /**
+     * @brief Method to refresh the notification page when app resumes
+     */
     public void refreshNotifications() {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
         String jsonNotificationString = prefs.getString("NotificationMap", (new JSONObject()).toString());
@@ -283,8 +291,6 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
         try {
             JSONObject jsonNotificationObject = new JSONObject(jsonNotificationString);
             Iterator<String> nKeysItr = jsonNotificationObject.keys();
-
-            System.out.println("YO THIS MAP: " + jsonNotificationString);
 
             tempList.clear();
             while (nKeysItr.hasNext()) {
