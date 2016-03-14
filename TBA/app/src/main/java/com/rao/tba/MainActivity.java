@@ -361,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.e(TAG, "ActivityDetectionBroadcastReceiver received broadcast");
+            Log.w(TAG, "ActivityDetectionBroadcastReceiver received broadcast");
 
             // Get notification information
             String notificationString = intent.getStringExtra("New Notification");

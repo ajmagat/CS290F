@@ -2,6 +2,7 @@ package com.rao.tba;
 
 import android.annotation.TargetApi;
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,6 +21,7 @@ import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
+import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -27,7 +29,7 @@ import com.google.android.gms.location.LocationServices;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 public class TransitionIntentService extends IntentService implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
@@ -39,15 +41,21 @@ public class TransitionIntentService extends IntentService implements Connection
     private static String previousState = "Unknown";
     private static String currentState = "Unknown";
 
+    private static int p = 0;
     // Keep track of location
     private static Location sPreviousLocation = null;
     private static Location sCurrentLocation = null;
 
+    private static PendingIntent sLocationIntent;
     // Google API for location service
     private GoogleApiClient mGoogleApi;
 
     // Handler for looping until location is returned
     private Handler mLocationHandler;
+
+    public Object mLocationLock;
+    private static final String ACTION_LOCATION_UPDATED = "location_updated";
+    private static final String ACTION_REQUEST_LOCATION = "request_location";
 
     // Use this to test a notification
     // Set to 0 to receive 1 notification
@@ -59,12 +67,13 @@ public class TransitionIntentService extends IntentService implements Connection
      */
     public TransitionIntentService() {
         super("TransitionIntentService");
+        mLocationLock = new Object();
 
     }
 
     /**
-     * @brief Callback from Google FusedLocationAPI for when location is determined via GPS
      * @param location
+     * @brief Callback from Google FusedLocationAPI for when location is determined via GPS
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
@@ -73,25 +82,32 @@ public class TransitionIntentService extends IntentService implements Connection
 
         Log.w(TAG, location.toString());
 
-        mLocationHandler.getLooper().quitSafely();
+        //  mLocationHandler.getLooper().quitSafely();
+        synchronized (mLocationLock) {
+            mLocationLock.notifyAll();
+        }
     }
 
     /**
-     * @brief Callback from Google API for when we have successfully connected
      * @param connectionHint
+     * @brief Callback from Google API for when we have successfully connected
      */
     @Override
-         public void onConnected(Bundle connectionHint) {
+    public void onConnected(Bundle connectionHint) {
         // Provides a simple way of getting a device's location and is well suited for
         // applications that do not require a fine-grained location and that do not need location
         // updates. Gets the best and most recent location currently available, which may be null
         // in rare cases when a location is not available.
         Log.i(TAG, "GoogleAPI successfully connected");
+        LocationRequest locRequest = new LocationRequest();
+        locRequest.setInterval(10000);
+        locRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi, locRequest, sLocationIntent);
     }
 
     /**
-     * @brief Callback from Google API for when connection has failed
      * @param result
+     * @brief Callback from Google API for when connection has failed
      */
     @Override
     public void onConnectionFailed(ConnectionResult result) {
@@ -101,22 +117,147 @@ public class TransitionIntentService extends IntentService implements Connection
     }
 
     /**
-     * @brief Callback from Google API for when connection is suspended
      * @param cause
+     * @brief Callback from Google API for when connection is suspended
      */
     @Override
     public void onConnectionSuspended(int cause) {
         // The connection to Google Play services was lost for some reason. We call connect() to
         // attempt to re-establish the connection.
         Log.i(TAG, "Connection suspended");
+    }
 
+    private void onLocationUpdated(Intent intent) {
+        Log.v(TAG, ACTION_LOCATION_UPDATED);
+
+        // Extra new location
+        Location location =
+                intent.getParcelableExtra(FusedLocationProviderApi.KEY_LOCATION_CHANGED);
+        Log.i(TAG, "swag");
+    }
+
+    private Location getLocation2() {
+        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .build();
+        ConnectionResult connectionResult = googleApiClient.blockingConnect(10, TimeUnit.SECONDS);
+        if (connectionResult.isSuccess() && googleApiClient.isConnected()) {
+
+            Intent locationUpdatedIntent = new Intent(this, TransitionIntentService.class);
+            locationUpdatedIntent.setAction(ACTION_LOCATION_UPDATED);
+
+            // Send last known location out first if available
+            Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+            if (location != null) {
+                Intent lastLocationIntent = new Intent(locationUpdatedIntent);
+                lastLocationIntent.putExtra(
+                        FusedLocationProviderApi.KEY_LOCATION_CHANGED, location);
+                startService(lastLocationIntent);
+            }
+
+            // Request new location
+            LocationRequest mLocationRequest = new LocationRequest()
+                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    googleApiClient, mLocationRequest,
+                    PendingIntent.getService(this, 0, locationUpdatedIntent, 0));
+
+            googleApiClient.disconnect();
+        } else {
+            Log.e(TAG, String.format("Failed to connect to GoogleApiClient (error code = %d)",
+                    connectionResult.getErrorCode()));
+        }
+        return null;
     }
 
     /**
      * @brief Used to get location using FusedLocationApi
      * @return current location
      */
+ /*   private Location getLocation() {
+        Log.i(TAG, "Trying to get location");
+        // Check if we need to set up Google API
+        if (mGoogleApi == null) {
+            // Build API
+            mGoogleApi = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+
+            if (sLocationIntent == null) {
+                Intent intent = new Intent(this, InnerLocationService.class);
+                sLocationIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            }
+
+            // Thank the 6 God for blockingConnect
+            ConnectionResult what = mGoogleApi.blockingConnect();
+        }
+
+        synchronized (InnerLocationService.sLocationLock) {
+            Log.e(TAG, "waiting for an empty location");
+            try {
+                InnerLocationService.sLocationLock.wait();
+                Log.e(TAG, "finished the first wait");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+//;        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApi, sLocationIntent);
+        return InnerLocationService.sLatestLocation;
+        // Prepare looper
+        // Looper will be used to wait for location
+/*        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
+        Log.i(TAG, "1");
+        // Create new handler
+        mLocationHandler = new Handler();
+        Log.i(TAG, "2");
+        // Create new location request
+        LocationRequest locRequest = new LocationRequest();
+
+        // Sets the desired interval for active location updates. This interval is
+        // inexact. You may not receive updates at all if no location sources are available, or
+        // you may receive them slower than requested. You may also receive updates faster than
+        // requested if other applications are requesting location at a faster interval.
+        locRequest.setInterval(5000);
+        locRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        Log.i(TAG, "3");
+//        // Here, thisActivity is the current activity
+//        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+//                Manifest.permission.ACCESS_FINE_LOCATION)
+//                != PackageManager.PERMISSION_GRANTED) {
+//
+//                // No explanation needed, we can request the permission.
+//
+//                ActivityCompat.requestPermissions((Activity)getApplicationContext(),
+//                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+//                        MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+//
+//        }
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApi, locRequest, this);
+
+        //Looper.loop();
+        try {
+            synchronized (mLocationLock) {
+                Log.i(TAG, "Waiting for location");
+                mLocationLock.wait();
+                Log.i(TAG, "Done location");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Location last = LocationServices.FusedLocationApi.getLastLocation(mGoogleApi);
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApi, this);
+        Log.i(TAG, "5");
+        return last;
+}*/
     private Location getLocation() {
+        Log.e(TAG, "Waiting to get location");
         // Check if we need to set up Google API
         if (mGoogleApi == null) {
             // Build API
@@ -148,7 +289,7 @@ public class TransitionIntentService extends IntentService implements Connection
         // requested if other applications are requesting location at a faster interval.
         locRequest.setInterval(5000);
         locRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-
+        Log.e(TAG, "About to wait for update");
 //        // Here, thisActivity is the current activity
 //        if (ContextCompat.checkSelfPermission(getApplicationContext(),
 //                Manifest.permission.ACCESS_FINE_LOCATION)
@@ -171,6 +312,7 @@ public class TransitionIntentService extends IntentService implements Connection
 
         return last;
     }
+
 
 
     /**
@@ -204,18 +346,20 @@ public class TransitionIntentService extends IntentService implements Connection
                 String detectedType = Constants.getActivityString(getApplicationContext(), d.getType());
                 Log.i(TAG, "Detected type: " + detectedType + " with confidence: " + d.getConfidence());
 
-
-                // TEST FOR NOTIFICATION
-                testNotification();
-
-                Log.i(TAG, "currentState: " + currentState);
-
                 // Check if the detected activity is for movement
                 if (!detectedType.equals("Still")) {
                     // Check for location
+                    Log.i(TAG, "Checking gps");
                     sPreviousLocation = sCurrentLocation;
                     sCurrentLocation = getLocation();
 
+                    if (sCurrentLocation == null) {
+                        Log.e(TAG, "shit was null");
+                    } else {
+                        Log.e(TAG, "SQUAD UP");
+                    }
+
+                    Log.i(TAG, "Got location");
                     // Check if the distance between the current and last position is enough to signify movement
                     if (sPreviousLocation != null && sCurrentLocation != null) {
                         float distance = sCurrentLocation.distanceTo(sPreviousLocation);
@@ -224,7 +368,8 @@ public class TransitionIntentService extends IntentService implements Connection
                         }
                     }
                 }
-
+                Log.e(TAG, "detected type after gps check: " + detectedType);
+                Log.w(TAG, "current state is : " + currentState);
                 Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
 
                 localIntent.putExtra("Previous State", previousState);
