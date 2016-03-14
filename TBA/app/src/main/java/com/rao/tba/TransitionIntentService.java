@@ -75,16 +75,12 @@ public class TransitionIntentService extends IntentService implements Connection
      * @param location
      * @brief Callback from Google FusedLocationAPI for when location is determined via GPS
      */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
     public void onLocationChanged(Location location) {
-        Log.e(TAG, "In here?");
+        Log.e(TAG, "onLocationChanged " + location.toString());
 
-        Log.w(TAG, location.toString());
-
-        //  mLocationHandler.getLooper().quitSafely();
-        synchronized (mLocationLock) {
-            mLocationLock.notifyAll();
+        if (mLocationHandler.getLooper().getThread().isAlive()) {
+            mLocationHandler.getLooper().quitSafely();
         }
     }
 
@@ -99,10 +95,10 @@ public class TransitionIntentService extends IntentService implements Connection
         // updates. Gets the best and most recent location currently available, which may be null
         // in rare cases when a location is not available.
         Log.i(TAG, "GoogleAPI successfully connected");
-        LocationRequest locRequest = new LocationRequest();
-        locRequest.setInterval(10000);
+     /*   LocationRequest locRequest = new LocationRequest();
+        locRequest.setInterval(0);
         locRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi, locRequest, sLocationIntent);
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi, locRequest, sLocationIntent);*/
     }
 
     /**
@@ -257,7 +253,6 @@ public class TransitionIntentService extends IntentService implements Connection
         return last;
 }*/
     private Location getLocation() {
-        Log.e(TAG, "Waiting to get location");
         // Check if we need to set up Google API
         if (mGoogleApi == null) {
             // Build API
@@ -287,7 +282,7 @@ public class TransitionIntentService extends IntentService implements Connection
         // inexact. You may not receive updates at all if no location sources are available, or
         // you may receive them slower than requested. You may also receive updates faster than
         // requested if other applications are requesting location at a faster interval.
-        locRequest.setInterval(5000);
+        locRequest.setInterval(0);
         locRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         Log.e(TAG, "About to wait for update");
 //        // Here, thisActivity is the current activity
@@ -344,22 +339,22 @@ public class TransitionIntentService extends IntentService implements Connection
 
                 // Get type of activity in string form
                 String detectedType = Constants.getActivityString(getApplicationContext(), d.getType());
-                Log.i(TAG, "Detected type: " + detectedType + " with confidence: " + d.getConfidence());
+                Log.w(TAG, "Detected type: " + detectedType + " with confidence: " + d.getConfidence());
 
                 // Check if the detected activity is for movement
                 if (!detectedType.equals("Still")) {
                     // Check for location
-                    Log.i(TAG, "Checking gps");
+                    Log.w(TAG, "Checking gps");
                     sPreviousLocation = sCurrentLocation;
                     sCurrentLocation = getLocation();
-
+                    Log.e(TAG, "Location is currently " + sCurrentLocation);
                     if (sCurrentLocation == null) {
                         Log.e(TAG, "shit was null");
                     } else {
                         Log.e(TAG, "SQUAD UP");
                     }
 
-                    Log.i(TAG, "Got location");
+                    Log.w(TAG, "Got location");
                     // Check if the distance between the current and last position is enough to signify movement
                     if (sPreviousLocation != null && sCurrentLocation != null) {
                         float distance = sCurrentLocation.distanceTo(sPreviousLocation);
