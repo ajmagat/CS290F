@@ -368,8 +368,11 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
             String currentState = intent.getStringExtra("Current State");
             String previousState = intent.getStringExtra("Previous State");
             boolean showNotification = intent.getBooleanExtra("notif", false);
+            String prevLocation = intent.getStringExtra("PLocation");
+            String currLocation = intent.getStringExtra("CLocation");
+            String difference = intent.getStringExtra("Difference");
             Toast.makeText(getApplicationContext(), "Previous: " + previousState + "\nCurrent: " + currentState, Toast.LENGTH_SHORT).show();
-
+            Toast.makeText(getApplicationContext(), "Previous Location: " + prevLocation + "\nCurrent location: " + currLocation + "\nDifference: " + difference, Toast.LENGTH_LONG).show();
             if ( showNotification ) {
                 // Add notification to list of notifications
                 List<Notification> tempList = mSectionsPagerAdapter.getNotificationList();
