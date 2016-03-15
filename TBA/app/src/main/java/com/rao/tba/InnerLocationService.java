@@ -39,6 +39,6 @@ public class InnerLocationService extends IntentService {
             localIntent.putExtra("CLocation", sCurrentLocation.toString());
         }
 
-        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+      //  LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 }

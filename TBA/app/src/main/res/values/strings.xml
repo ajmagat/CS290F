@@ -24,11 +24,13 @@
         <item>Sitting</item>
         <item>Still</item>
         <item>Unknown</item>
+        <item>Receive Text</item>
     </string-array>
 
     <string-array name="do_array">
         <item>Drop Pin</item>
         <item>Silence Phone</item>
+        <item>Send Text</item>
     </string-array>
 
     <!-- TODO: Remove or change this placeholder text -->

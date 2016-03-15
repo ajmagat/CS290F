@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.media.AudioManager;
+import android.os.Bundle;
+import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -18,35 +21,50 @@ public class SMSListener extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.e("kljklj", "got stuff in sms");
-//        try {
-//            if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) {
-//                // Text has been received
-//                // Check if receiving SMS is part of a recipe
-//                if(EditRecipesFragment.mRecipeList != null) {
-//                    for (Recipe r : EditRecipesFragment.mRecipeList) {
-//                        if (r.getIfList().contains(TransitionIntentService.currentState)) {
-//                            if (r.getThenList().contains(Constants.RECEIVE_TEXT)) {
-//                                // There is a recipe that involves receiving an SMS
-//                                Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
-//                                localIntent.putExtra("notif", true);
-//                                Notification temp = createSMSNotification(context, r);
-//                                localIntent.putExtra("New Notification", temp.toString());
-//                            }
-//                        }
-//                    }
-//                }
-//
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        try {
+            if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) {
+                // Text has been received
+                Bundle bundle = intent.getExtras();
+                SmsMessage[] msgs = null;
+
+                String originAddress = "";
+                if (bundle != null) {
+                    Object[] pdus = (Object[]) bundle.get("pdus");
+
+                    msgs = new SmsMessage[pdus.length];
+
+                    String format = bundle.getString("format");
+                    msgs[0] = SmsMessage.createFromPdu((byte[]) pdus[0], format);
+                    originAddress = msgs[0].getOriginatingAddress();
+                }
+
+
+                // Check if receiving SMS is part of a recipe
+                if(EditRecipesFragment.mRecipeList != null) {
+                    for (Recipe r : EditRecipesFragment.mRecipeList) {
+                        if (r.getIfList().contains(TransitionIntentService.currentState)) {
+                            if (r.getThenList().contains(Constants.RECEIVE_TEXT)) {
+                                // There is a recipe that involves receiving an SMS
+                                Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
+                                localIntent.putExtra("notif", true);
+                                Notification temp = createSMSNotification(context, r, originAddress);
+                                localIntent.putExtra("New Notification", temp.toString());
+                            }
+                        }
+                    }
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
     /**
      * @brief Method to handle creation of notification
      */
-    public Notification createSMSNotification(Context context, Recipe triggered) {
+    public Notification createSMSNotification(Context context, Recipe triggered, String originAddr) {
         try {
             // Get shared preferences
             SharedPreferences prefs = context.getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
@@ -71,13 +89,14 @@ public class SMSListener extends BroadcastReceiver {
 
                 not = new Notification(action);
             } else if (action.equals(Constants.SEND_TEXT)) {
-
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(originAddr, null, "Sorry, user is currently busy", null, null);
             }
 
             if (not != null) {
                 // Add notification to shared preferences
                 jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
-               // editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
+                editor.putString(Constants.NOTIFICATION_MAP_NAME, jsonObject.toString());
                 editor.commit();
             }
             return not;

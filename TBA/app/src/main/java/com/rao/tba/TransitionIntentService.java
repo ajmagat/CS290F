@@ -16,6 +16,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
@@ -36,8 +37,8 @@ public class TransitionIntentService extends IntentService implements Connection
     protected static final String TAG = "TransitionIntentService";
 
     // Keep track of state across classes
-    private static String previousState = "Unknown";
-    private static String currentState = "Unknown";
+    public static String previousState = "Unknown";
+    public static String currentState = "Unknown";
 
     private static boolean sGPSIsOn = false;
     private static boolean sQuickGPSIsOn = false;
@@ -46,6 +47,7 @@ public class TransitionIntentService extends IntentService implements Connection
     private static Location sCurrentLocation = null;
 
     private static PendingIntent sLocationIntent;
+    private static PendingIntent sPendingIntent;
     // Google API for location service
     private GoogleApiClient sGoogleApi;
 
@@ -130,13 +132,26 @@ public class TransitionIntentService extends IntentService implements Connection
                 sQuickGPSIsOn = true;
             }
 
-            long interval = quick ? 7500 : 20000;
+            long interval = quick ? 0 : 20000;
             LocationRequest locRequest = new LocationRequest();
+            if (quick) {
+                sQuickGPSIsOn = true;
+                locRequest.setNumUpdates(2);
+            }
+
             locRequest.setInterval(interval);
             locRequest.setFastestInterval(interval);
             locRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             LocationServices.FusedLocationApi.requestLocationUpdates(sGoogleApi, locRequest, sLocationIntent);
             sGPSIsOn = true;
+
+        /*    if (sPendingIntent == null) {
+                Intent intent = new Intent(this, TransitionIntentService.class);
+                PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                sPendingIntent = pendingIntent;
+            }
+
+            ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(sGoogleApi, Constants.DETECTION_INTERVAL_IN_MILLISECONDS, sPendingIntent);*/
         }
     }
 
