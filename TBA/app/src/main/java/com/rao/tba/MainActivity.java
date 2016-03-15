@@ -374,6 +374,7 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
             Toast.makeText(getApplicationContext(), "Previous: " + previousState + "\nCurrent: " + currentState, Toast.LENGTH_SHORT).show();
             Toast.makeText(getApplicationContext(), "Previous Location: " + prevLocation + "\nCurrent location: " + currLocation + "\nDifference: " + difference, Toast.LENGTH_LONG).show();
             if ( showNotification ) {
+                Log.e("ASDFSDFSS", "trying to show notification---------");
                 // Add notification to list of notifications
                 List<Notification> tempList = mSectionsPagerAdapter.getNotificationList();
                 Notification newNotification = new Notification(notificationString, Integer.toString(tempList.size()));

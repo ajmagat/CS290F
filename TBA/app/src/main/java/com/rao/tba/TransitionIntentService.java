@@ -40,6 +40,7 @@ public class TransitionIntentService extends IntentService implements Connection
     private static String currentState = "Unknown";
 
     private static boolean sGPSIsOn = false;
+    private static boolean sQuickGPSIsOn = false;
     // Keep track of location
     private static Location sPreviousLocation = null;
     private static Location sCurrentLocation = null;
@@ -56,7 +57,7 @@ public class TransitionIntentService extends IntentService implements Connection
     // Use this to test a notification
     // Set to 0 to receive 1 notification
     // Set to anything else to not receive the test notification
-    public static int TEST_INT = 0;
+    public static int TEST_INT = 1;
 
     /**
      * @brief Default constructor
@@ -104,9 +105,10 @@ public class TransitionIntentService extends IntentService implements Connection
     /**
      * @brief This function starts the GPS
      */
-    private void startLocation() {
+    private void startLocation(boolean quick) {
         // Check if we need to set up Google API
         if (! sGPSIsOn) {
+            Log.e(TAG, "starting location?");
             if (sGoogleApi == null) {
                 // Build API
                 sGoogleApi = new GoogleApiClient.Builder(this)
@@ -124,11 +126,17 @@ public class TransitionIntentService extends IntentService implements Connection
                 sLocationIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             }
 
+            if (quick) {
+                sQuickGPSIsOn = true;
+            }
+
+            long interval = quick ? 7500 : 20000;
             LocationRequest locRequest = new LocationRequest();
-            locRequest.setInterval(20000);
-            locRequest.setFastestInterval(20000);
+            locRequest.setInterval(interval);
+            locRequest.setFastestInterval(interval);
             locRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             LocationServices.FusedLocationApi.requestLocationUpdates(sGoogleApi, locRequest, sLocationIntent);
+            sGPSIsOn = true;
         }
     }
 
@@ -154,9 +162,13 @@ public class TransitionIntentService extends IntentService implements Connection
                 Intent intent = new Intent(this, InnerLocationService.class);
                 sLocationIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             }
-            InnerLocationService.sPreviousLocation = null;
-            InnerLocationService.sCurrentLocation = null;
+            if (! sQuickGPSIsOn ) {
+                InnerLocationService.sPreviousLocation = null;
+                InnerLocationService.sCurrentLocation = null;
+            }
             LocationServices.FusedLocationApi.removeLocationUpdates(sGoogleApi, sLocationIntent);
+            sGPSIsOn = false;
+            sQuickGPSIsOn = false;
         }
     }
 
@@ -209,10 +221,7 @@ public class TransitionIntentService extends IntentService implements Connection
             if ( d.getConfidence() > 70 )
             {
                 Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
-                if (TEST_INT == 0) {
-                    testNotification();
-                    localIntent.putExtra("notif", true);
-                }
+
                 // Get type of activity in string form
                 String detectedType = Constants.getActivityString(getApplicationContext(), d.getType());
                 String originalDetectedType = detectedType;
@@ -223,23 +232,31 @@ public class TransitionIntentService extends IntentService implements Connection
                 if (!detectedType.equals("Still")) {
 
                     // Check for location
+                    Log.w(TAG, "trying to get lock?:");
 
-                    mLocationLock.lock();
-
-                    startLocation();
-
+                    Log.w(TAG, "got lock?");
                     sPreviousLocation = InnerLocationService.sPreviousLocation;
                     sCurrentLocation = InnerLocationService.sCurrentLocation;
-
-
-                    sGPSIsOn = true;
-
-                    mLocationLock.unlock();
-
                     // Wait until there are at least two locations to check
                     if (sPreviousLocation == null || sCurrentLocation == null) {
+                        Log.e(TAG, "STARTING FAST GPS");
+                        startLocation(true);
                         return;
+                    } else {
+                        // Check if quick GPS is on, if so turn it off
+                        Log.e(TAG, "slower gps");
+                        if (sQuickGPSIsOn) {
+                            stopLocation();
+                        }
+
+                        // Turn on regular GPS
+                        startLocation(false);
                     }
+
+
+
+
+
 
                     // Check if the distance between the current and last position is enough to signify movement
                     if (sPreviousLocation != null && sCurrentLocation != null) {
@@ -254,7 +271,6 @@ public class TransitionIntentService extends IntentService implements Connection
 
                 if (originalDetectedType.equals("Still")) {
                     stopLocation();
-                    sGPSIsOn = false;
                 }
 
                 if (sPreviousLocation != null) {

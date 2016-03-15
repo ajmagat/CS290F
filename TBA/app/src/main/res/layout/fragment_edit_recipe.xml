@@ -134,5 +134,11 @@
         android:layout_height="wrap_content"
         android:text="Clear" />
 
+    <Button
+        android:id="@+id/btnFence"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create GeoFence" />
+
 
 </LinearLayout>

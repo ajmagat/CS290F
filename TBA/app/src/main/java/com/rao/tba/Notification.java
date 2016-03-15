@@ -70,6 +70,11 @@ public class Notification {
     public String toString() {
         String timeStamp = new SimpleDateFormat("MMdd_HHmm").format(mDate);
         System.out.println("In toString for notification");
-        return mType + "!" + timeStamp + "!" + mLocation.getLatitude() + "!" + mLocation.getLongitude();
+        String returnString = mType + "!" + timeStamp;
+        if (mType.equals("Drop Pin")) {
+            returnString += "!" + mLocation.getLatitude() + "!" + mLocation.getLongitude();
+        }
+
+        return returnString;
     }
 }

@@ -13,16 +13,24 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private double DEFAULT_LAT = 34.416655;
+    private double DEFAULT_LONG = -119.845260;
     private GoogleMap mMap;
     private double mLat;
     private double mLong;
+    private boolean mHaveCoords;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle b = getIntent().getExtras();
-        mLat = b.getDouble("Latitude");
-        mLong = b.getDouble("Longitude");
+        if (b != null) {
+            mLat = b.getDouble("Latitude");
+            mLong = b.getDouble("Longitude");
+            mHaveCoords = true;
+        } else {
+            mHaveCoords = false;
+        }
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -44,11 +52,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         // Add a marker in Sydney and move the camera
-        LatLng location = new LatLng(mLat, mLong);
-        mMap.addMarker(new MarkerOptions().position(location).title("Your Bike"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
+        if (mHaveCoords) {
+            LatLng location = new LatLng(mLat, mLong);
+            mMap.addMarker(new MarkerOptions().position(location).title("Your Bike"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
+        } else {
+            LatLng location = new LatLng(DEFAULT_LAT, DEFAULT_LONG);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(14));
+        }
     }
 
     public void dropPin(Location location) {

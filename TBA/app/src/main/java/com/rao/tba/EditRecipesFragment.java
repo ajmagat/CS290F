@@ -2,7 +2,9 @@ package com.rao.tba;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -37,6 +39,7 @@ public class EditRecipesFragment extends Fragment {
     private Button mBtnThenAdd;
     private Button mBtnDoAdd;
     private Button mBtnClear;
+    private Button mBtnFence;
     private SpinnerRecipeListAdapter mIfSpinnerAdapter;
     private SpinnerRecipeListAdapter mThenSpinnerAdapter;
     private SpinnerRecipeListAdapter mDoSpinnerAdapter;
@@ -148,6 +151,19 @@ public class EditRecipesFragment extends Fragment {
         mBtnThenAdd = (Button) rootView.findViewById(R.id.thenAddButton);
         mBtnDoAdd = (Button) rootView.findViewById(R.id.doAddButton);
 
+        mBtnFence = (Button) rootView.findViewById(R.id.btnFence);
+
+        final EditRecipesFragment instance = this;
+        mBtnFence.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent mapsIntent = new Intent(getContext(), MapsActivity.class);
+
+                // Start map activity
+                startActivity(mapsIntent);
+            }
+        });
+
         mBtnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -182,7 +198,12 @@ public class EditRecipesFragment extends Fragment {
                 mDoSpinnerAdapter.add(tempInt);
             }
         });
-        final EditRecipesFragment instance = this;
+
+
+
+
+
+
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
