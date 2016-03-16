@@ -92,7 +92,7 @@ public class NotificationsFragment extends Fragment {
     }
 
     public interface OnListFragmentInteractionListener {
-        void onListFragmentInteraction(Notification item, int pos, NotificationListAdapter adapter, List<Notification> values);
+        void onListFragmentInteraction(Notification item, int pos, NotificationListAdapter adapter, List<Notification> values, boolean delete);
     }
     public void changeButtonVisibility() {
        // Button bikeNotificationButton = (Button) getView().findViewById(R.id.bikeNotificationButton);

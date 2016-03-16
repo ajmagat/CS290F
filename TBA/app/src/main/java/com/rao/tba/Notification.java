@@ -59,6 +59,10 @@ public class Notification {
         return mType;
     }
 
+    public String getName() {
+        return mName;
+    }
+
     public Location getLocation() {
         return mLocation;
     }

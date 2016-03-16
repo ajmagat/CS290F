@@ -130,7 +130,7 @@ public class SMSListener extends BroadcastReceiver {
 
             if (not != null) {
                 // Add notification to shared preferences
-                jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
+                jsonObject.put(not.getName(), not.toString());
                 editor.putString(Constants.NOTIFICATION_MAP_NAME, jsonObject.toString());
                 editor.commit();
             }

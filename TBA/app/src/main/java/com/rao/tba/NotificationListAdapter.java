@@ -1,6 +1,7 @@
 package com.rao.tba;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -9,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.rao.tba.NotificationsFragment.OnListFragmentInteractionListener;
+
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -51,8 +54,21 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onListFragmentInteraction(holder.mItem, holder.getAdapterPosition(), temp, mValues);
+                    mListener.onListFragmentInteraction(holder.mItem, holder.getAdapterPosition(), temp, mValues, false);
                 }
+            }
+        });
+
+        final NotificationListAdapter tempAdapter = this;
+        holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
+
+            @Override
+            public boolean onLongClick(View v) {
+                if (mListener != null) {
+                    mListener.onListFragmentInteraction(holder.mItem, holder.getAdapterPosition(), temp, mValues, true);
+                }
+
+                return false;
             }
         });
     }

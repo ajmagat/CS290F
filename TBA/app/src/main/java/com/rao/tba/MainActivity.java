@@ -334,23 +334,45 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
     }
 
     @Override
-    public void onListFragmentInteraction(Notification item, int pos, NotificationListAdapter adapter, List<Notification> values) {
+    public void onListFragmentInteraction(Notification item, int pos, NotificationListAdapter adapter, List<Notification> values, boolean delete) {
         // Check the type of notification
-        if (item.getType().equals(Constants.DROP_PIN)) {
-            // Create an intent for the map
-            Intent mapsIntent = new Intent(this, MapsActivity.class);
+        if (! delete) {
+            if (item.getType().equals(Constants.DROP_PIN)) {
+                // Create an intent for the map
+                Intent mapsIntent = new Intent(this, MapsActivity.class);
 
-            // Create a bundle to hold any extra parameters
-            Bundle b = new Bundle();
+                // Create a bundle to hold any extra parameters
+                Bundle b = new Bundle();
 
-            // Store location information in bundle
-            Location temp = item.getLocation();
-            b.putDouble("Latitude", temp.getLatitude());
-            b.putDouble("Longitude", temp.getLongitude());
-            mapsIntent.putExtras(b);
+                // Store location information in bundle
+                Location temp = item.getLocation();
+                b.putDouble("Latitude", temp.getLatitude());
+                b.putDouble("Longitude", temp.getLongitude());
+                mapsIntent.putExtras(b);
 
-            // Start map activity
-            startActivity(mapsIntent);
+                // Start map activity
+                startActivity(mapsIntent);
+            }
+        } else {
+            try {
+                SharedPreferences prefs = getApplicationContext().getSharedPreferences("RAOStore", Context.MODE_PRIVATE);
+                String jsonString = prefs.getString(TransitionIntentService.NOTIFICATION_MAP_NAME, (new JSONObject()).toString());
+                JSONObject jsonObject = new JSONObject(jsonString);
+                Log.e(TAG, "Json object is: " + jsonString);
+                jsonObject.remove(item.getName());
+                Log.e(TAG, "After remove: " + jsonObject.toString());
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove(TransitionIntentService.NOTIFICATION_MAP_NAME).commit();
+                editor.putString(TransitionIntentService.NOTIFICATION_MAP_NAME, jsonObject.toString());
+                editor.commit();
+
+
+                values.remove(pos);
+                adapter.notifyItemRemoved(pos);
+                adapter.notifyItemRangeRemoved(pos, values.size());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

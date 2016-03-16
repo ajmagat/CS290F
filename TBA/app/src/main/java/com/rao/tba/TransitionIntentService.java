@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 
 public class TransitionIntentService extends IntentService implements ConnectionCallbacks, OnConnectionFailedListener {
-    private static final String NOTIFICATION_MAP_NAME = "NotificationMap";
+    public static final String NOTIFICATION_MAP_NAME = "NotificationMap";
     // Tag for logs
     protected static final String TAG = "TransitionIntentService";
 
@@ -61,7 +61,7 @@ public class TransitionIntentService extends IntentService implements Connection
     // Use this to test a notification
     // Set to 0 to receive 1 notification
     // Set to anything else to not receive the test notification
-    public static int TEST_INT = 1;
+    public static int TEST_INT = 0;
 
     public static boolean sInitialLocationSet = false;
 
@@ -214,7 +214,7 @@ public class TransitionIntentService extends IntentService implements Connection
         if (! ActivityRecognitionResult.hasResult(intent)) {
             return;
         }
-
+        testNotification();
         if ( ! sInitialLocationSet || sCurrentLocation == null) {
             startLocation(true);
             sCurrentLocation = InnerLocationService.sCurrentLocation;
@@ -386,7 +386,7 @@ public class TransitionIntentService extends IntentService implements Connection
 
             if (not != null) {
                 // Add notification to shared preferences
-                jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
+                jsonObject.put(not.getName(), not.toString());
                 editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
                 editor.commit();
             }
@@ -419,10 +419,10 @@ public class TransitionIntentService extends IntentService implements Connection
                 notifLoc.setLongitude(-119.845260);
             }
 
-            Notification not = new Notification("asdf", Constants.DROP_PIN, notifLoc);
+            Notification not = new Notification("bsdf", Constants.DROP_PIN, notifLoc);
 
             // Add notification to shared preferences
-            jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
+            jsonObject.put(not.getName(), not.toString());
             editor.putString(NOTIFICATION_MAP_NAME, jsonObject.toString());
             editor.commit();
             Log.w(TAG, "Just added test to shared preferences");
