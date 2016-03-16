@@ -268,11 +268,26 @@ public class EditRecipesFragment extends Fragment {
 
                         Recipe newRecipe = new Recipe(ifArray, thenArray, doArray, locationArray, recipe_name);
                         String newRecipeString = newRecipe.toString();
+                        if (jsonObject.has(recipe_name)) {
+                            jsonObject.remove(recipe_name);
+                        }
                         jsonObject.put(recipe_name, newRecipeString);
 
                         SharedPreferences.Editor editor = prefs.edit();
                         editor.putString(MAP_NAME, jsonObject.toString());
                         editor.commit();
+                        int deleteIndex = -1;
+                        for(int i = 0; i < mRecipeList.size(); i++) {
+                            if (mRecipeList.get(i).getName().equals(recipe_name)) {
+                                deleteIndex = i;
+                            }
+                        }
+
+                        if (deleteIndex != -1) {
+                            mRecipeList.remove(deleteIndex);
+                            ((RecipeFragment) getFragmentManager().getFragments().get(1)).getRecipeListAdapter().notifyItemRemoved(deleteIndex);
+                            ((RecipeFragment) getFragmentManager().getFragments().get(1)).getRecipeListAdapter().notifyItemRangeRemoved(deleteIndex, mRecipeList.size());
+                        }
 
                         mRecipeList.add(newRecipe);
                         ((RecipeFragment) getFragmentManager().getFragments().get(1)).getRecipeListAdapter().notifyDataSetChanged();
@@ -339,6 +354,10 @@ public class EditRecipesFragment extends Fragment {
             tempInt[0] = 2;
             tempInt[1] = doArray.indexOf(s);
             mDoSpinnerAdapter.add(tempInt);
+        }
+
+        for (LatLng l : fillRecipe.getLocationList()) {
+            MapsActivity.sPoints.add(l);
         }
 
         recipeName = (EditText) getView().findViewById(R.id.recipeName);
