@@ -12,6 +12,8 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.json.JSONObject;
 
 /**
@@ -39,18 +41,48 @@ public class SMSListener extends BroadcastReceiver {
                     originAddress = msgs[0].getOriginatingAddress();
                 }
 
-
+                Log.e("kljklj", "got stuff in sms more");
                 // Check if receiving SMS is part of a recipe
                 if(EditRecipesFragment.mRecipeList != null) {
+                    Log.e("kljklj", "got stuff in sms 1");
                     for (Recipe r : EditRecipesFragment.mRecipeList) {
+                        Log.e("kljklj", "got stuff in sms 2");
                         if (r.getIfList().contains(TransitionIntentService.currentState)) {
+                            Log.e("kljklj", "got stuff in sms 3");
                             if (r.getThenList().contains(Constants.RECEIVE_TEXT)) {
-                                // There is a recipe that involves receiving an SMS
-                                Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
-                                localIntent.putExtra("notif", true);
-                                Notification temp = createSMSNotification(context, r, originAddress);
-                                localIntent.putExtra("New Notification", temp.toString());
-                                LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);
+                                Log.e("kljklj", "got stuff in sms 4");
+                                boolean inside = false;
+                                if (r.getLocationList().size() > 0) {
+                                    Log.e("kljklj", "Checking geofences!!!!!!");
+                                    for (LatLng l : r.getLocationList()) {
+                                        Location current = TransitionIntentService.sCurrentLocation;
+                                        if (current != null) {
+                                            Log.e("kljklj", "Current location is not null");
+                                            Log.e("kljklj", "Location is " + current.describeContents());
+
+                                            Location t = new Location("");
+                                            t.setLatitude(l.latitude);
+                                            t.setLongitude(l.longitude);
+                                            if (TransitionIntentService.sCurrentLocation.distanceTo(t) <= Constants.GEOFENCE_RADIUS) {
+                                                inside = true;
+                                            }
+                                        } else {
+                                            Log.e("kljklj", "location was null");
+                                        }
+                                    }
+                                } else if (r.getLocationList().size() == 0) {
+                                    Log.e("kljklj", "There are no geofences");
+                                    inside = true;
+                                }
+
+                                if (inside) {
+                                    // There is a recipe that involves receiving an SMS
+                                    Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
+                                    localIntent.putExtra("notif", true);
+                                    Notification temp = createSMSNotification(context, r, originAddress);
+                                    localIntent.putExtra("New Notification", temp.toString());
+                                    LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);
+                                }
                             }
                         }
                     }

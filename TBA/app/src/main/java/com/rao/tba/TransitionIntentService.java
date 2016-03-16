@@ -21,6 +21,7 @@ import com.google.android.gms.location.DetectedActivity;
 
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONObject;
 
@@ -43,8 +44,8 @@ public class TransitionIntentService extends IntentService implements Connection
     private static boolean sQuickGPSIsOn = false;
 
     // Keep track of location
-    private static Location sPreviousLocation = null;
-    private static Location sCurrentLocation = null;
+    public static Location sPreviousLocation = null;
+    public static Location sCurrentLocation = null;
 
     private static PendingIntent sLocationIntent;
     private static PendingIntent sPendingIntent;
@@ -61,7 +62,9 @@ public class TransitionIntentService extends IntentService implements Connection
     // Set to 0 to receive 1 notification
     // Set to anything else to not receive the test notification
     public static int TEST_INT = 1;
-    
+
+    public static boolean sInitialLocationSet = false;
+
     /**
      * @brief Default constructor
      */
@@ -123,7 +126,7 @@ public class TransitionIntentService extends IntentService implements Connection
                 // Thank the 6 God for blockingConnect
                 ConnectionResult what = sGoogleApi.blockingConnect();
             }
-
+            Log.e(TAG, "ABOUT TO CALL GPS API");
             if (sLocationIntent == null) {
                 Intent intent = new Intent(this, InnerLocationService.class);
                 sLocationIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -139,13 +142,13 @@ public class TransitionIntentService extends IntentService implements Connection
                 sQuickGPSIsOn = true;
                 locRequest.setNumUpdates(2);
             }
-
+            Log.e(TAG, "ABOUT TO CALL GPS API 2");
             locRequest.setInterval(interval);
             locRequest.setFastestInterval(interval);
             locRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             LocationServices.FusedLocationApi.requestLocationUpdates(sGoogleApi, locRequest, sLocationIntent);
             sGPSIsOn = true;
-
+            Log.e(TAG, "ABOUT TO CALL GPS API 3");
         /*    if (sPendingIntent == null) {
                 Intent intent = new Intent(this, TransitionIntentService.class);
                 PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -182,6 +185,7 @@ public class TransitionIntentService extends IntentService implements Connection
                 InnerLocationService.sPreviousLocation = null;
                 InnerLocationService.sCurrentLocation = null;
             }
+
             LocationServices.FusedLocationApi.removeLocationUpdates(sGoogleApi, sLocationIntent);
             sGPSIsOn = false;
             sQuickGPSIsOn = false;
@@ -219,6 +223,15 @@ public class TransitionIntentService extends IntentService implements Connection
             return;
         }
 
+        if ( ! sInitialLocationSet || sCurrentLocation == null) {
+            startLocation(true);
+            sCurrentLocation = InnerLocationService.sCurrentLocation;
+            if (sCurrentLocation != null) {
+                stopLocation();
+                sInitialLocationSet = true;
+            }
+        }
+
         // If there are results, extract them
         ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
 
@@ -230,9 +243,6 @@ public class TransitionIntentService extends IntentService implements Connection
         // Loop through every activity
         for (DetectedActivity d : detectedActivities )
         {
-
-
-
             // Process if the detected activity has confidence over 70
             if ( d.getConfidence() > 70 )
             {
@@ -281,7 +291,7 @@ public class TransitionIntentService extends IntentService implements Connection
                     }
                 }
 
-                if (originalDetectedType.equals("Still")) {
+                if (originalDetectedType.equals("Still") && sInitialLocationSet ) {
                     stopLocation();
                 }
 
@@ -315,12 +325,39 @@ public class TransitionIntentService extends IntentService implements Connection
                     if(EditRecipesFragment.mRecipeList != null) {
                         for (Recipe r : EditRecipesFragment.mRecipeList) {
                             if (r.getIfList().contains(previousState) && r.getThenList().contains(currentState)) {
-                                localIntent.putExtra("notif", true);
-                                Notification temp = createNotification(r);
-                                localIntent.putExtra("New Notification", temp.toString());
+                                boolean inside = false;
+                                if (r.getLocationList().size() > 0) {
+                                    Log.e(TAG, "Checking geofences!!!!!!");
+                                    for (LatLng l : r.getLocationList()) {
+                                        if (sCurrentLocation == null) {
+                                            Location t = new Location("");
+                                            t.setLatitude(l.latitude);
+                                            t.setLongitude(l.longitude);
+                                            if (sCurrentLocation.distanceTo(t) <= Constants.GEOFENCE_RADIUS) {
+                                                inside = true;
+                                            }
+                                        }
+                                    }
+                                } else if (r.getLocationList().size() == 1) {
+                                    Log.e(TAG, "There are no geofences");
+                                    inside = true;
+                                }
+
+                                if (inside) {
+                                    localIntent.putExtra("notif", true);
+                                    Notification temp = createNotification(r);
+                                    localIntent.putExtra("New Notification", temp.toString());
+                                }
                             }
                         }
                     }
+                }
+
+                if (sPreviousLocation != null) {
+                    Log.w(TAG, "prev location " + sPreviousLocation.toString());
+                }
+                if (sCurrentLocation != null) {
+                    Log.w(TAG, "continue location " + sCurrentLocation.toString());
                 }
 
                 LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);

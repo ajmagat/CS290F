@@ -17,11 +17,14 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @brief Fragment used for the editing of recipes
@@ -171,6 +174,7 @@ public class EditRecipesFragment extends Fragment {
                 mIfSpinnerAdapter.clear();
                 mThenSpinnerAdapter.clear();
                 mDoSpinnerAdapter.clear();
+                MapsActivity.sPoints.clear();
             }
         });
 
@@ -256,7 +260,13 @@ public class EditRecipesFragment extends Fragment {
                             doArray.add(recipePart);
                         }
 
-                        Recipe newRecipe = new Recipe(ifArray, thenArray, doArray, recipe_name);
+                        ArrayList<LatLng> locationArray = new ArrayList<>();
+                        for (int i = 0; i < MapsActivity.sPoints.size(); i++) {
+                            locationArray.add(MapsActivity.sPoints.get(i));
+                        }
+
+
+                        Recipe newRecipe = new Recipe(ifArray, thenArray, doArray, locationArray, recipe_name);
                         String newRecipeString = newRecipe.toString();
                         jsonObject.put(recipe_name, newRecipeString);
 
@@ -271,6 +281,7 @@ public class EditRecipesFragment extends Fragment {
                         mIfSpinnerAdapter.clear();
                         mThenSpinnerAdapter.clear();
                         mDoSpinnerAdapter.clear();
+                        MapsActivity.sPoints.clear();
                     } else {
                         System.out.println("RecipeStore is null. First time access?");
                     }

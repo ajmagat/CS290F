@@ -298,7 +298,9 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
                 String value = (String) jsonNotificationObject.get(key);
                 tempList.add(0, new Notification(value, key, true));
             }
-            ((NotificationsFragment) getSupportFragmentManager().getFragments().get(0)).getNotificationsAdapter().notifyDataSetChanged();
+            if (getSupportFragmentManager().getFragments() != null ) {
+                ((NotificationsFragment) getSupportFragmentManager().getFragments().get(0)).getNotificationsAdapter().notifyDataSetChanged();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -21,6 +21,7 @@ public final class Constants {
     public static final String NOTIFICATION_MAP_NAME = "NotificationMap";
     public static final String RECEIVE_TEXT = "Receive Text";
     public static final String SEND_TEXT = "Send Text";
+    public static final int GEOFENCE_RADIUS = 50;
     public static final String SHARED_PREFERENCES_NAME = PACKAGE_NAME + ".SHARED_PREFERENCES";
 
     public static final String ACTIVITY_UPDATES_REQUESTED_KEY = PACKAGE_NAME +
