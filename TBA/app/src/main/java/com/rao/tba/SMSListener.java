@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -33,8 +34,8 @@ public class SMSListener extends BroadcastReceiver {
 
                     msgs = new SmsMessage[pdus.length];
 
-                    String format = bundle.getString("format");
-                    msgs[0] = SmsMessage.createFromPdu((byte[]) pdus[0], format);
+                    //String format = bundle.getString("format");
+                    msgs[0] = SmsMessage.createFromPdu((byte[]) pdus[0]);
                     originAddress = msgs[0].getOriginatingAddress();
                 }
 
@@ -49,6 +50,7 @@ public class SMSListener extends BroadcastReceiver {
                                 localIntent.putExtra("notif", true);
                                 Notification temp = createSMSNotification(context, r, originAddress);
                                 localIntent.putExtra("New Notification", temp.toString());
+                                LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);
                             }
                         }
                     }
@@ -81,16 +83,17 @@ public class SMSListener extends BroadcastReceiver {
             if (action.equals("Drop Pin")) {
                 // If drop pin, get location and create notification
                 Location notifLoc = InnerLocationService.sCurrentLocation;
-                not = new Notification(action, notifLoc);
+                not = new Notification(triggered.getName(), action, notifLoc);
 
             } else if (action.equals("Silence Phone")) {
                // AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
               //  audio.setRingerMode(0);
 
-                not = new Notification(action);
+                not = new Notification(triggered.getName(), action);
             } else if (action.equals(Constants.SEND_TEXT)) {
                 SmsManager smsManager = SmsManager.getDefault();
                 smsManager.sendTextMessage(originAddr, null, "Sorry, user is currently busy", null, null);
+                not = new Notification(triggered.getName(), action);
             }
 
             if (not != null) {

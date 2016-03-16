@@ -296,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
             while (nKeysItr.hasNext()) {
                 String key = nKeysItr.next();
                 String value = (String) jsonNotificationObject.get(key);
-                tempList.add(0, new Notification(value, key));
+                tempList.add(0, new Notification(value, key, true));
             }
             ((NotificationsFragment) getSupportFragmentManager().getFragments().get(0)).getNotificationsAdapter().notifyDataSetChanged();
         } catch (Exception e) {
@@ -372,12 +372,12 @@ public class MainActivity extends AppCompatActivity implements NotificationsFrag
             String currLocation = intent.getStringExtra("CLocation");
             String difference = intent.getStringExtra("Difference");
             Toast.makeText(getApplicationContext(), "Previous: " + previousState + "\nCurrent: " + currentState, Toast.LENGTH_SHORT).show();
-            Toast.makeText(getApplicationContext(), "Previous Location: " + prevLocation + "\nCurrent location: " + currLocation + "\nDifference: " + difference, Toast.LENGTH_LONG).show();
+            //Toast.makeText(getApplicationContext(), "Previous Location: " + prevLocation + "\nCurrent location: " + currLocation + "\nDifference: " + difference, Toast.LENGTH_SHORT).show();
             if ( showNotification ) {
                 Log.e("ASDFSDFSS", "trying to show notification---------");
                 // Add notification to list of notifications
                 List<Notification> tempList = mSectionsPagerAdapter.getNotificationList();
-                Notification newNotification = new Notification(notificationString, Integer.toString(tempList.size()));
+                Notification newNotification = new Notification(notificationString, Integer.toString(tempList.size()), true);
                 tempList.add(0, newNotification);
 
                 // Signal to NotificationListAdapter that the list has changed

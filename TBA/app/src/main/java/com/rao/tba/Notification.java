@@ -14,23 +14,26 @@ import java.util.List;
  * Created by ajmagat on 3/9/16.
  */
 public class Notification {
+    private String mName;
     private String mType;
     private Location mLocation;
     private Date mDate;
 
-    public Notification(String type) {
+    public Notification(String name, String type) {
+        mName = name;
         mType = type;
         mDate = new Date();
         mLocation = new Location("");
     }
 
-    public Notification(String type, Location loc) {
+    public Notification(String name, String type, Location loc) {
+        mName = name;
         mType = type;
         mLocation = loc;
         mDate = new Date();
     }
 
-    public Notification(String serializedNotification, String id) {
+    public Notification(String serializedNotification, String id, boolean heh) {
         List<String> partsList = new ArrayList<>(Arrays.asList(serializedNotification.split("!")));
         mType = partsList.get(0);
         DateFormat sdff = new SimpleDateFormat("MMdd_HHmm");
@@ -39,11 +42,12 @@ public class Notification {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        mName = partsList.get(2);
         mLocation = null;
         if(mType.equals("Drop Pin")) {
             mLocation = new Location("");
-            mLocation.setLatitude(Double.parseDouble(partsList.get(2)));
-            mLocation.setLongitude(Double.parseDouble(partsList.get(3)));
+            mLocation.setLatitude(Double.parseDouble(partsList.get(3)));
+            mLocation.setLongitude(Double.parseDouble(partsList.get(4)));
         }
     }
 
@@ -64,13 +68,13 @@ public class Notification {
      */
     public String describe() {
         String timeStamp = new SimpleDateFormat("MM/dd HH:mm").format(mDate);
-        return timeStamp + " : " + mType;
+        return timeStamp + " : " + mName + "\n" + mType;
     }
 
     public String toString() {
         String timeStamp = new SimpleDateFormat("MMdd_HHmm").format(mDate);
         System.out.println("In toString for notification");
-        String returnString = mType + "!" + timeStamp;
+        String returnString = mType + "!" + timeStamp + "!" + mName;
         if (mType.equals("Drop Pin")) {
             returnString += "!" + mLocation.getLatitude() + "!" + mLocation.getLongitude();
         }

@@ -66,6 +66,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    public void onMapClick(LatLng point) {
+
+    }
     public void dropPin(Location location) {
 
     }

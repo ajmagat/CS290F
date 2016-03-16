@@ -16,7 +16,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
@@ -42,12 +41,14 @@ public class TransitionIntentService extends IntentService implements Connection
 
     private static boolean sGPSIsOn = false;
     private static boolean sQuickGPSIsOn = false;
+
     // Keep track of location
     private static Location sPreviousLocation = null;
     private static Location sCurrentLocation = null;
 
     private static PendingIntent sLocationIntent;
     private static PendingIntent sPendingIntent;
+
     // Google API for location service
     private GoogleApiClient sGoogleApi;
 
@@ -60,7 +61,7 @@ public class TransitionIntentService extends IntentService implements Connection
     // Set to 0 to receive 1 notification
     // Set to anything else to not receive the test notification
     public static int TEST_INT = 1;
-
+    
     /**
      * @brief Default constructor
      */
@@ -269,10 +270,6 @@ public class TransitionIntentService extends IntentService implements Connection
                     }
 
 
-
-
-
-
                     // Check if the distance between the current and last position is enough to signify movement
                     if (sPreviousLocation != null && sCurrentLocation != null) {
                         localIntent.putExtra("Difference", Float.toString(sCurrentLocation.distanceTo(sPreviousLocation)));
@@ -302,6 +299,7 @@ public class TransitionIntentService extends IntentService implements Connection
 
                 localIntent.putExtra("Previous State", previousState);
                 localIntent.putExtra("Current State", currentState);
+
                 localIntent.putExtra("notif", false);
 
 
@@ -354,12 +352,12 @@ public class TransitionIntentService extends IntentService implements Connection
                 Log.e(TAG, "Creating notification");
                 Location notifLoc = getLocation();
 
-                not = new Notification(action, notifLoc);
+                not = new Notification(triggered.getName(), action, notifLoc);
             } else if (action.equals("Silence Phone")) {
                 AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
                 audio.setRingerMode(0);
 
-                not = new Notification(action);
+                not = new Notification(triggered.getName(), action);
             }
 
             if (not != null) {
@@ -397,7 +395,7 @@ public class TransitionIntentService extends IntentService implements Connection
                 notifLoc.setLongitude(-119.845260);
             }
 
-            Notification not = new Notification("Drop Pin", notifLoc);
+            Notification not = new Notification("asdf", "Drop Pin", notifLoc);
 
             // Add notification to shared preferences
             jsonObject.put(Integer.toString(jsonObject.length()), not.toString());

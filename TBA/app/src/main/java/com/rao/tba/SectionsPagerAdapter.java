@@ -48,7 +48,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
             while (nKeysItr.hasNext()) {
                 String key = nKeysItr.next();
                 String value = (String) jsonNotificationObject.get(key);
-                notificationList.add(0, new Notification(value, key));
+                notificationList.add(0, new Notification(value, key, true));
+                System.out.println("hello " + key);
             }
         } catch (Exception e) {
             e.printStackTrace();
