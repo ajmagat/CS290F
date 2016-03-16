@@ -141,7 +141,7 @@ public class EditRecipesFragment extends Fragment {
         recipeName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if ( ! hasFocus ) {
+                if (!hasFocus) {
                     hideKeyboard(v);
                 }
             }
@@ -160,6 +160,7 @@ public class EditRecipesFragment extends Fragment {
         mBtnFence.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                hideKeyboard(v);
                 Intent mapsIntent = new Intent(getContext(), MapsActivity.class);
 
                 // Start map activity
@@ -170,6 +171,7 @@ public class EditRecipesFragment extends Fragment {
         mBtnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                hideKeyboard(v);
                 recipeName.setText("");
                 mIfSpinnerAdapter.clear();
                 mThenSpinnerAdapter.clear();
@@ -183,6 +185,7 @@ public class EditRecipesFragment extends Fragment {
         mBtnIfAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                hideKeyboard(v);
                 int[] tempInt = {0, 0};
                 mIfSpinnerAdapter.add(tempInt);
             }
@@ -191,6 +194,7 @@ public class EditRecipesFragment extends Fragment {
         mBtnThenAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                hideKeyboard(v);
                 int[] tempInt = {1, 0};
                 mThenSpinnerAdapter.add(tempInt);
             }
@@ -199,6 +203,7 @@ public class EditRecipesFragment extends Fragment {
         mBtnDoAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                hideKeyboard(v);
                 int[] tempInt = {2, 0};
                 mDoSpinnerAdapter.add(tempInt);
             }
@@ -212,6 +217,7 @@ public class EditRecipesFragment extends Fragment {
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                hideKeyboard(v);
                 ListView listIfView = (ListView) getView().findViewById(R.id.ifList);
                 ListView listThenView = (ListView) getView().findViewById(R.id.thenList);
                 ListView listDoView = (ListView) getView().findViewById(R.id.doList);
@@ -315,7 +321,7 @@ public class EditRecipesFragment extends Fragment {
      */
     public void hideKeyboard(View view) {
         InputMethodManager inputMethodManager =(InputMethodManager)getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
 
 

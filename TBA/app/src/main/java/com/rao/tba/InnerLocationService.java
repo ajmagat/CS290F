@@ -18,27 +18,13 @@ public class InnerLocationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.e("LOCATION STUFF", "in here");
-
         if (! LocationResult.hasResult(intent)) {
             return;
         }
-        Log.e("LOCATION STUFF", "results here");
+        Log.e("Map", "Results found for location");
         LocationResult locationResult = LocationResult.extractResult(intent);
 
         sPreviousLocation = sCurrentLocation;
         sCurrentLocation = locationResult.getLastLocation();
-
-        Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
-
-        if (sPreviousLocation != null) {
-            localIntent.putExtra("PLocation", sPreviousLocation.toString());
-        }
-
-        if (sCurrentLocation != null) {
-            localIntent.putExtra("CLocation", sCurrentLocation.toString());
-        }
-
-      //  LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 }

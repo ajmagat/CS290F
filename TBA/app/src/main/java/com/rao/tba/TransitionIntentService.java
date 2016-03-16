@@ -126,7 +126,7 @@ public class TransitionIntentService extends IntentService implements Connection
                 // Thank the 6 God for blockingConnect
                 ConnectionResult what = sGoogleApi.blockingConnect();
             }
-            Log.e(TAG, "ABOUT TO CALL GPS API");
+
             if (sLocationIntent == null) {
                 Intent intent = new Intent(this, InnerLocationService.class);
                 sLocationIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -142,20 +142,12 @@ public class TransitionIntentService extends IntentService implements Connection
                 sQuickGPSIsOn = true;
                 locRequest.setNumUpdates(2);
             }
-            Log.e(TAG, "ABOUT TO CALL GPS API 2");
+
             locRequest.setInterval(interval);
             locRequest.setFastestInterval(interval);
             locRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             LocationServices.FusedLocationApi.requestLocationUpdates(sGoogleApi, locRequest, sLocationIntent);
             sGPSIsOn = true;
-            Log.e(TAG, "ABOUT TO CALL GPS API 3");
-        /*    if (sPendingIntent == null) {
-                Intent intent = new Intent(this, TransitionIntentService.class);
-                PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                sPendingIntent = pendingIntent;
-            }
-
-            ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(sGoogleApi, Constants.DETECTION_INTERVAL_IN_MILLISECONDS, sPendingIntent);*/
         }
     }
 
@@ -258,19 +250,16 @@ public class TransitionIntentService extends IntentService implements Connection
                 if (!detectedType.equals("Still")) {
 
                     // Check for location
-                    Log.w(TAG, "trying to get lock?:");
-
-                    Log.w(TAG, "got lock?");
                     sPreviousLocation = InnerLocationService.sPreviousLocation;
                     sCurrentLocation = InnerLocationService.sCurrentLocation;
                     // Wait until there are at least two locations to check
                     if (sPreviousLocation == null || sCurrentLocation == null) {
-                        Log.e(TAG, "STARTING FAST GPS");
+                        Log.e(TAG, "Starting quick GPS");
                         startLocation(true);
                         return;
                     } else {
                         // Check if quick GPS is on, if so turn it off
-                        Log.e(TAG, "slower gps");
+                        Log.e(TAG, "Starting slower gps");
                         if (sQuickGPSIsOn) {
                             stopLocation();
                         }
@@ -303,9 +292,10 @@ public class TransitionIntentService extends IntentService implements Connection
                     localIntent.putExtra("CLocation", sCurrentLocation.toString());
                 }
 
-                Log.e(TAG, "detected type after gps check: " + detectedType);
-                Log.w(TAG, "current state is : " + currentState);
+                previousState = currentState;
+                currentState = detectedType;
 
+                Log.w(TAG, "Current state is : " + currentState);
 
                 localIntent.putExtra("Previous State", previousState);
                 localIntent.putExtra("Current State", currentState);
@@ -314,10 +304,7 @@ public class TransitionIntentService extends IntentService implements Connection
 
 
                 // Check if the user has changed states
-                if(!detectedType.equals(currentState)) {
-                    previousState = currentState;
-                    currentState = detectedType;
-
+                if(!currentState.equals(previousState)) {
                     Log.e(TAG, "previousState: " + previousState);
                     Log.e(TAG, "currentState: " + currentState);
 
@@ -384,7 +371,7 @@ public class TransitionIntentService extends IntentService implements Connection
             Notification not = null;
             System.out.println("Action is : " + action);
             // Check what this action was
-            if (action.equals("Drop Pin")) {
+            if (action.equals(Constants.DROP_PIN)) {
                 // If drop pin, get location and create notification
                 Log.e(TAG, "Creating notification");
                 Location notifLoc = getLocation();
@@ -432,7 +419,7 @@ public class TransitionIntentService extends IntentService implements Connection
                 notifLoc.setLongitude(-119.845260);
             }
 
-            Notification not = new Notification("asdf", "Drop Pin", notifLoc);
+            Notification not = new Notification("asdf", Constants.DROP_PIN, notifLoc);
 
             // Add notification to shared preferences
             jsonObject.put(Integer.toString(jsonObject.length()), not.toString());
@@ -441,6 +428,7 @@ public class TransitionIntentService extends IntentService implements Connection
             Log.w(TAG, "Just added test to shared preferences");
             Intent localIntent = new Intent(Constants.BROADCAST_ACTION);
             localIntent.putExtra("New Notification", not.toString());
+            localIntent.putExtra("notif", true);
             LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
             Log.w(TAG, "Just broadcasted");
         } catch (Exception e) {
