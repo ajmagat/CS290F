@@ -175,6 +175,7 @@ public class EditRecipesFragment extends Fragment {
                 mThenSpinnerAdapter.clear();
                 mDoSpinnerAdapter.clear();
                 MapsActivity.sPoints.clear();
+                MapsActivity.sGeofenceMap.clear();
             }
         });
 
@@ -297,6 +298,7 @@ public class EditRecipesFragment extends Fragment {
                         mThenSpinnerAdapter.clear();
                         mDoSpinnerAdapter.clear();
                         MapsActivity.sPoints.clear();
+                        MapsActivity.sGeofenceMap.clear();
                     } else {
                         System.out.println("RecipeStore is null. First time access?");
                     }

@@ -11,12 +11,16 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
 
@@ -28,6 +32,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mHaveCoords;
 
     public static List<LatLng> sPoints = new ArrayList<>();
+    public static Map<Marker, Circle> sGeofenceMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +65,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                sGeofenceMap.get(marker).remove();
+                marker.remove();
+                sGeofenceMap.remove(marker);
+                sPoints.remove(marker.getPosition());
+            }
+        });
+
         mMap.setOnMapClickListener(this);
         mMap.setOnMapLongClickListener(this);
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
@@ -75,9 +90,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.animateCamera(CameraUpdateFactory.zoomTo(14));
             MarkerOptions options = new MarkerOptions();
             CircleOptions circleOptions;
-            for (LatLng l : sPoints ) {
+            for (LatLng l : sPoints) {
                 options.position(l);
-                mMap.addMarker(options);
+                options.title("Click here to remove geofence");
+                Marker marker = mMap.addMarker(options);
+
 
                 circleOptions = new CircleOptions()
                         .center( l )
@@ -86,7 +103,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .strokeColor(Color.TRANSPARENT)
                         .strokeWidth(2);
 
-                mMap.addCircle(circleOptions);
+                Circle circle = mMap.addCircle(circleOptions);
+                sGeofenceMap.put(marker, circle);
             }
         }
 
@@ -102,7 +120,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapLongClick(LatLng latLng) {
         MarkerOptions options = new MarkerOptions();
         options.position(latLng);
-        mMap.addMarker(options);
+        options.title("Click here to remove geofence");
+        Marker marker = mMap.addMarker(options);
         CircleOptions circleOptions = new CircleOptions()
                 .center( latLng )
                 .radius( Constants.GEOFENCE_RADIUS )
@@ -110,8 +129,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .strokeColor(Color.TRANSPARENT)
                 .strokeWidth(2);
 
-        mMap.addCircle(circleOptions);
+        Circle circle = mMap.addCircle(circleOptions);
 
         sPoints.add(latLng);
+        sGeofenceMap.put(marker, circle);
     }
 }
